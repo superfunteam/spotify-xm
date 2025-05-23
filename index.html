@@ -109,7 +109,7 @@
         
     </div>
 
-    <div class="now-playing-container relative z-2 mt-2">
+    <div class="now-playing-container w-full relative z-2 mt-2">
         <h2 class="special-gothic-condensed-one-regular text-xl text-white px-6 pt-4 flex flex-row items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 text-emerald-300">
                 <path fill-rule="evenodd" d="M19.952 1.651a.75.75 0 0 1 .298.599V16.303a3 3 0 0 1-2.176 2.884l-1.32.377a2.553 2.553 0 1 1-1.403-4.909l2.311-.66a1.5 1.5 0 0 0 1.088-1.442V6.994l-9 2.572v9.737a3 3 0 0 1-2.176 2.884l-1.32.377a2.553 2.553 0 1 1-1.402-4.909l2.31-.66a1.5 1.5 0 0 0 1.088-1.442V5.25a.75.75 0 0 1 .544-.721l10.5-3a.75.75 0 0 1 .658.122Z" clip-rule="evenodd" />
@@ -153,6 +153,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Spotify Player variables
   let player = null;
   let deviceId = null;
+  let currentAccessToken = null;
+  let timeUpdateInterval = null;
 
   function setActiveStation(targetStation) {
     if (!targetStation) return;
@@ -192,6 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function initializeSpotifyPlayer(accessToken) {
     console.log('Initializing Spotify Player...');
+    currentAccessToken = accessToken;
     
     // Wait for Spotify Web Playbook SDK to load
     window.onSpotifyWebPlaybackSDKReady = () => {
@@ -224,7 +227,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!state) {
           return;
         }
+        console.log('Player state changed:', state);
         updateNowPlayingUI(state);
+        startTimeUpdates(state);
       });
 
       // Ready
@@ -239,6 +244,9 @@ document.addEventListener('DOMContentLoaded', () => {
       // Not Ready
       player.addListener('not_ready', ({ device_id }) => {
         console.log('Device ID has gone offline', device_id);
+        if (timeUpdateInterval) {
+          clearInterval(timeUpdateInterval);
+        }
       });
 
       // Connect to the player!
@@ -248,6 +256,44 @@ document.addEventListener('DOMContentLoaded', () => {
     // Trigger the callback if SDK is already loaded
     if (window.Spotify) {
       window.onSpotifyWebPlaybackSDKReady();
+    }
+  }
+
+  function startTimeUpdates(initialState) {
+    // Clear any existing interval
+    if (timeUpdateInterval) {
+      clearInterval(timeUpdateInterval);
+    }
+
+    // Start a new interval to update time every second
+    timeUpdateInterval = setInterval(async () => {
+      if (player) {
+        try {
+          const state = await player.getCurrentState();
+          if (state && !state.paused) {
+            updateElapsedTime(state.position);
+          }
+        } catch (error) {
+          console.error('Error getting current state:', error);
+        }
+      }
+    }, 1000);
+  }
+
+  function updateElapsedTime(position) {
+    // Try multiple selectors to find the time elapsed element
+    const timeElapsedElement = document.querySelector('.time-elapsed') || 
+                              document.querySelector('.now-playing .time-elapsed') ||
+                              document.querySelector('.now-playing-container .time-elapsed');
+    
+    console.log('Updating elapsed time, position:', position, 'element found:', !!timeElapsedElement);
+    
+    if (timeElapsedElement && position !== undefined) {
+      const minutes = Math.floor(position / 60000);
+      const seconds = Math.floor((position % 60000) / 1000);
+      const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      timeElapsedElement.textContent = timeString;
+      console.log('Updated time to:', timeString);
     }
   }
 
@@ -314,36 +360,41 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (!current_track) return;
 
+    console.log('Updating Now Playing UI for:', current_track.name);
+
     // Update cover image in the now-playing section
-    const coverElement = document.querySelector('.now-playing .cover');
+    const coverElement = document.querySelector('.now-playing .cover') || 
+                         document.querySelector('.cover');
     if (coverElement && current_track.album.images.length > 0) {
       coverElement.style.backgroundImage = `url('${current_track.album.images[0].url}')`;
+      console.log('Updated cover image');
     }
 
     // Update track title and artist in the now-playing section
-    const trackTitleElement = document.querySelector('.now-playing .track-title');
-    const artistNameElement = document.querySelector('.now-playing .artist-name');
+    const trackTitleElement = document.querySelector('.now-playing .track-title') || 
+                             document.querySelector('.track-title');
+    const artistNameElement = document.querySelector('.now-playing .artist-name') || 
+                             document.querySelector('.artist-name');
     
     if (trackTitleElement) {
       trackTitleElement.textContent = current_track.name;
+      console.log('Updated track title');
     }
     if (artistNameElement) {
       artistNameElement.textContent = current_track.artists.map(artist => artist.name).join(', ');
+      console.log('Updated artist name');
     }
 
     // Update album title in the now-playing section
-    const albumTitleElement = document.querySelector('.now-playing .album-title');
+    const albumTitleElement = document.querySelector('.now-playing .album-title') || 
+                             document.querySelector('.album-title');
     if (albumTitleElement) {
       albumTitleElement.textContent = current_track.album.name;
+      console.log('Updated album title');
     }
 
-    // Update elapsed time
-    const timeElapsedElement = document.querySelector('.now-playing .time-elapsed');
-    if (timeElapsedElement && position !== undefined) {
-      const minutes = Math.floor(position / 60000);
-      const seconds = Math.floor((position % 60000) / 1000);
-      timeElapsedElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-    }
+    // Update elapsed time initially
+    updateElapsedTime(position);
 
     console.log('Now playing:', current_track.name, 'by', current_track.artists[0].name);
   }
