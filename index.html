@@ -155,6 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let deviceId = null;
   let currentAccessToken = null;
   let timeUpdateInterval = null;
+  let previousState = null; // Track previous state to detect track endings
 
   function setActiveStation(targetStation) {
     if (!targetStation) return;
@@ -229,18 +230,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         console.log('Player state changed:', state);
         
-        // Check if track has ended (position is very close to duration and not paused)
-        if (state.position !== undefined && state.duration !== undefined) {
-          const progressPercentage = (state.position / state.duration) * 100;
+        // Check if track has ended by comparing with previous state
+        if (previousState && state.position !== undefined && state.duration !== undefined && 
+            previousState.position !== undefined && previousState.duration !== undefined) {
           
-          // If track is at 98%+ completion and paused, it likely ended naturally
-          if (progressPercentage >= 98 && state.paused && !state.loading) {
-            console.log('Track appears to have ended naturally, playing next random song from beginning');
+          const currentProgress = (state.position / state.duration) * 100;
+          const previousProgress = (previousState.position / previousState.duration) * 100;
+          
+          // Track ended if:
+          // 1. Previous position was near the end (>95%)
+          // 2. Current position reset to near 0 (<5%)
+          // 3. Current state is paused
+          // 4. It's the same track (same duration, roughly)
+          if (previousProgress > 95 && currentProgress < 5 && state.paused && 
+              Math.abs(state.duration - previousState.duration) < 5000) {
+            console.log('Track ended naturally - previous progress:', previousProgress.toFixed(1) + '%, current progress:', currentProgress.toFixed(1) + '%, playing next random song from beginning');
             setTimeout(() => {
               playRandomLikedSongFromBeginning(currentAccessToken);
             }, 1000); // Small delay to ensure the track has fully ended
           }
         }
+        
+        // Store current state as previous for next comparison
+        previousState = { ...state };
         
         updateNowPlayingUI(state);
         startTimeUpdates(state);
