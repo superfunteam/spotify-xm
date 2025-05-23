@@ -271,7 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
           const state = await player.getCurrentState();
           if (state && !state.paused) {
-            updateElapsedTime(state.position);
+            updateElapsedTime(state.position, state.duration);
           }
         } catch (error) {
           console.error('Error getting current state:', error);
@@ -280,13 +280,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1000);
   }
 
-  function updateElapsedTime(position) {
+  function updateElapsedTime(position, duration) {
     // Try multiple selectors to find the time elapsed element
     const timeElapsedElement = document.querySelector('.time-elapsed') || 
                               document.querySelector('.now-playing .time-elapsed') ||
                               document.querySelector('.now-playing-container .time-elapsed');
     
-    console.log('Updating elapsed time, position:', position, 'element found:', !!timeElapsedElement);
+    console.log('Updating elapsed time, position:', position, 'duration:', duration, 'element found:', !!timeElapsedElement);
     
     if (timeElapsedElement && position !== undefined) {
       const minutes = Math.floor(position / 60000);
@@ -294,6 +294,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
       timeElapsedElement.textContent = timeString;
       console.log('Updated time to:', timeString);
+    }
+
+    // Update progress bar width
+    const progressElement = document.querySelector('.progress');
+    if (progressElement && position !== undefined && duration !== undefined && duration > 0) {
+      const progressPercentage = (position / duration) * 100;
+      progressElement.style.width = `${progressPercentage}%`;
+      console.log('Updated progress to:', `${progressPercentage.toFixed(1)}%`);
     }
   }
 
@@ -394,7 +402,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Update elapsed time initially
-    updateElapsedTime(position);
+    updateElapsedTime(position, duration);
 
     console.log('Now playing:', current_track.name, 'by', current_track.artists[0].name);
   }
@@ -463,7 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <!-- Global Playback Scrubber -->
 <div class="fixed bottom-0 top-0 left-0 w-full opacity-10 pointer-events-none z-1">
-  <div class="h-full bg-white" style="width: 20%;"></div>
+  <div class="progress h-full bg-white transition-all" style="width: 0%;"></div>
 </div>
 
 <!-- Spotify Auth Overlay -->
