@@ -19,6 +19,7 @@ exports.handler = async function(event, context) {
     'user-read-private',
     'user-modify-playback-state',
     'user-read-playback-state',
+    'user-library-read', // Required to access liked songs
     'playlist-read-private',
     'playlist-read-collaborative'
     // Add any other scopes your app might need
