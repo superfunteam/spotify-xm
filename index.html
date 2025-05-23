@@ -237,18 +237,22 @@ document.addEventListener('DOMContentLoaded', () => {
           const currentProgress = (state.position / state.duration) * 100;
           const previousProgress = (previousState.position / previousState.duration) * 100;
           
+          console.log('Track ending detection - Previous progress:', previousProgress.toFixed(1) + '%, Current progress:', currentProgress.toFixed(1) + '%, Paused:', state.paused, 'Duration diff:', Math.abs(state.duration - previousState.duration));
+          
           // Track ended if:
-          // 1. Previous position was near the end (>95%)
-          // 2. Current position reset to near 0 (<5%)
+          // 1. Previous position was near the end (>90%)
+          // 2. Current position reset to near 0 (<10%)
           // 3. Current state is paused
           // 4. It's the same track (same duration, roughly)
-          if (previousProgress > 95 && currentProgress < 5 && state.paused && 
+          if (previousProgress > 90 && currentProgress < 10 && state.paused && 
               Math.abs(state.duration - previousState.duration) < 5000) {
             console.log('Track ended naturally - previous progress:', previousProgress.toFixed(1) + '%, current progress:', currentProgress.toFixed(1) + '%, playing next random song from beginning');
             setTimeout(() => {
               playRandomLikedSongFromBeginning(currentAccessToken);
             }, 1000); // Small delay to ensure the track has fully ended
           }
+        } else {
+          console.log('Track ending detection - Missing data. Previous state:', !!previousState, 'Current position defined:', state.position !== undefined, 'Current duration defined:', state.duration !== undefined);
         }
         
         // Store current state as previous for next comparison
