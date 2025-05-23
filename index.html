@@ -198,8 +198,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let spotifyPlayer = null;
   let spotifyDeviceId = null;
   let currentAccessToken = null;
-  let deviceReadyTimestamp = null; // Track when device becomes ready
-  let playbackAttempts = 0; // Track retry attempts
+  let deviceReadyTimestamp = null;
+  let playbackAttempts = 0;
 
   function updateNowPlayingUI(track) {
     const coverArtEl = document.querySelector('.now-playing .cover');
@@ -240,70 +240,124 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('Access token is not available for API call');
         return null;
     }
-    const res = await fetch(`https://api.spotify.com/v1${endpoint}`,
-    {
-        headers: {
-            'Authorization': `Bearer ${currentAccessToken}`,
-            'Content-Type': 'application/json'
-        },
-        method,
-        body: body ? JSON.stringify(body) : undefined
-    });
-    if (!res.ok) {
-        console.error(`Spotify API Error (${res.status}) for ${method} ${endpoint}:`, await res.json().catch(() => ({})));
-        if (res.status === 401) {
-            console.error('Token expired or invalid. Implement refresh logic or re-auth.');
-            if(spotifyAuthOverlay) spotifyAuthOverlay.style.display = 'flex';
-            localStorage.removeItem('spotify_access_token');
-            localStorage.removeItem('spotify_token_expires_at');
-            localStorage.removeItem('spotify_refresh_token');
-        }
-        return null;
-    }
+    
     try {
-        return await res.json();
-    } catch (e) {
-        if (res.status === 204) return { success: true }; 
-        console.error('Error parsing Spotify API JSON response:', e);
+        const res = await fetch(`https://api.spotify.com/v1${endpoint}`, {
+            headers: {
+                'Authorization': `Bearer ${currentAccessToken}`,
+                'Content-Type': 'application/json'
+            },
+            method,
+            body: body ? JSON.stringify(body) : undefined
+        });
+        
+        if (!res.ok) {
+            const errorText = await res.text();
+            console.error(`Spotify API Error (${res.status}) for ${method} ${endpoint}:`, errorText);
+            if (res.status === 401) {
+                console.error('Token expired or invalid.');
+                if(spotifyAuthOverlay) spotifyAuthOverlay.style.display = 'flex';
+                localStorage.removeItem('spotify_access_token');
+                localStorage.removeItem('spotify_token_expires_at');
+                localStorage.removeItem('spotify_refresh_token');
+            }
+            return null;
+        }
+        
+        if (res.status === 204) {
+            return { success: true };
+        }
+        
+        const responseText = await res.text();
+        if (!responseText) {
+            return { success: true };
+        }
+        
+        try {
+            return JSON.parse(responseText);
+        } catch (parseError) {
+            console.error('Failed to parse JSON response:', responseText.substring(0, 100));
+            return null;
+        }
+    } catch (error) {
+        console.error('Network error in fetchWebApi:', error);
         return null;
     }
   }
 
-  async function ensureDeviceIsActive(deviceId, maxRetries = 3) {
-    console.log(`Ensuring device ${deviceId} is active...`);
+  async function waitForDeviceInSpotifyList(deviceId, maxWaitTime = 30000) {
+    console.log(`Waiting for device ${deviceId} to appear in Spotify's device list...`);
+    const startTime = Date.now();
+    
+    while (Date.now() - startTime < maxWaitTime) {
+      try {
+        const devices = await fetchWebApi('/me/player/devices', 'GET');
+        if (devices && devices.devices) {
+          const ourDevice = devices.devices.find(device => device.id === deviceId);
+          if (ourDevice) {
+            console.log('Device found in Spotify device list:', ourDevice);
+            return true;
+          }
+        }
+        
+        console.log('Device not yet in list, waiting 2 seconds...');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } catch (error) {
+        console.error('Error checking device list:', error);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    }
+    
+    console.error(`Device ${deviceId} never appeared in Spotify's device list`);
+    return false;
+  }
+
+  async function ensureDeviceIsActiveAndReady(deviceId, maxRetries = 5) {
+    console.log(`Ensuring device ${deviceId} is active and ready...`);
     
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       console.log(`Device activation attempt ${attempt}/${maxRetries}`);
       
-      // First, try to get current playback state
-      const playbackState = await fetchWebApi('/me/player', 'GET');
-      if (playbackState && playbackState.device && playbackState.device.id === deviceId && playbackState.device.is_active) {
-        console.log('Device is already active!');
-        return true;
-      }
-      
-      // Try to transfer playback to our device
-      const transferResult = await fetchWebApi('/me/player', 'PUT', {
-        device_ids: [deviceId],
-        play: false
-      });
-      
-      if (transferResult && (transferResult.success || transferResult.status === 204)) {
-        // Wait a bit longer after transfer
-        await new Promise(resolve => setTimeout(resolve, 1000 + (attempt * 500)));
-        
-        // Check if transfer was successful
-        const newState = await fetchWebApi('/me/player', 'GET');
-        if (newState && newState.device && newState.device.id === deviceId) {
-          console.log(`Device activated successfully on attempt ${attempt}`);
+      // Check if device exists and is active
+      const devices = await fetchWebApi('/me/player/devices', 'GET');
+      if (devices && devices.devices) {
+        const ourDevice = devices.devices.find(device => device.id === deviceId);
+        if (ourDevice && ourDevice.is_active) {
+          console.log('Device is active and ready!');
           return true;
+        }
+        
+        if (ourDevice) {
+          console.log('Device exists but not active, transferring playback...');
+          // Try to activate it
+          const transferResult = await fetchWebApi('/me/player', 'PUT', {
+            device_ids: [deviceId],
+            play: false
+          });
+          
+          if (transferResult !== null) {
+            // Wait for activation to complete
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Check again
+            const newDevices = await fetchWebApi('/me/player/devices', 'GET');
+            if (newDevices && newDevices.devices) {
+              const updatedDevice = newDevices.devices.find(device => device.id === deviceId);
+              if (updatedDevice && updatedDevice.is_active) {
+                console.log(`Device activated successfully on attempt ${attempt}`);
+                return true;
+              }
+            }
+          }
+        } else {
+          console.log('Device not found in device list, waiting...');
+          await new Promise(resolve => setTimeout(resolve, 3000));
         }
       }
       
-      // Wait before retrying
       if (attempt < maxRetries) {
         console.log(`Device activation attempt ${attempt} failed, retrying...`);
-        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
       }
     }
     
@@ -311,45 +365,43 @@ document.addEventListener('DOMContentLoaded', () => {
     return false;
   }
 
-  async function playTrackWithRetry(trackUri, deviceId, maxRetries = 3) {
-    console.log(`Attempting to play track: ${trackUri} on device: ${deviceId}`);
+  async function playTrackRobust(trackUri, deviceId) {
+    console.log(`Playing track ${trackUri} on device ${deviceId}`);
     
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      console.log(`Play attempt ${attempt}/${maxRetries} for track: ${trackUri}`);
-      
+    try {
+      // Use the Web API play endpoint instead of SDK
       const result = await fetchWebApi(`/me/player/play?device_id=${deviceId}`, 'PUT', {
-        uris: [trackUri]
+        uris: [trackUri],
+        position_ms: 0
       });
       
-      if (result && (result.success || result.status === 204 || result.status === undefined)) {
-        console.log(`Play command accepted on attempt ${attempt}`);
+      if (result !== null) {
+        console.log('Track play command sent successfully');
         
-        // Wait and check if playback actually started
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // Wait a moment for playback to start
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
+        // Verify playback started
         const playbackState = await fetchWebApi('/me/player', 'GET');
-        if (playbackState && !playbackState.is_playing && playbackState.progress_ms === 0) {
-          console.log(`Playback didn't start properly on attempt ${attempt}, retrying...`);
-          if (attempt < maxRetries) {
-            // Try to resume playback
-            await fetchWebApi('/me/player/play', 'PUT');
-            await new Promise(resolve => setTimeout(resolve, 1000));
+        if (playbackState && playbackState.is_playing) {
+          console.log('Playback confirmed as active');
+          return true;
+        } else if (playbackState && !playbackState.is_playing) {
+          console.log('Track loaded but paused, attempting to resume...');
+          const resumeResult = await fetchWebApi('/me/player/play', 'PUT');
+          if (resumeResult !== null) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            const finalState = await fetchWebApi('/me/player', 'GET');
+            return finalState && finalState.is_playing;
           }
-          continue;
         }
-        
-        console.log(`Playback started successfully on attempt ${attempt}`);
-        return true;
       }
       
-      if (attempt < maxRetries) {
-        console.log(`Play attempt ${attempt} failed, retrying...`);
-        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-      }
+      return false;
+    } catch (error) {
+      console.error('Error in playTrackRobust:', error);
+      return false;
     }
-    
-    console.error(`Failed to play track after ${maxRetries} attempts`);
-    return false;
   }
 
   async function fetchAndPlayRandomLikedSong(deviceId) {
@@ -364,14 +416,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (randomTrack && randomTrack.uri) {
             console.log('Selected random liked song:', randomTrack.name, 'URI:', randomTrack.uri);
             
-            // Ensure device is active before attempting playback
-            const deviceActive = await ensureDeviceIsActive(deviceId);
-            if (!deviceActive) {
-              console.error('Could not activate device for playback');
+            // Ensure device is ready
+            const deviceReady = await ensureDeviceIsActiveAndReady(deviceId);
+            if (!deviceReady) {
+              console.error('Device not ready for playback');
               return false;
             }
             
-            return await playTrackWithRetry(randomTrack.uri, deviceId);
+            return await playTrackRobust(randomTrack.uri, deviceId);
         } else {
             console.error('Could not get a valid track URI from liked songs.');
             updateNowPlayingUI(null);
@@ -409,7 +461,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('Initializing Spotify Web Playback SDK instance');
 
     spotifyPlayer = new Spotify.Player({
-        name: 'SuperFun Music Player (WebSDK)',
+        name: 'SuperFun Music Player',
         getOAuthToken: cb => { 
             if (!currentAccessToken) {
                 console.warn('getOAuthToken: currentAccessToken is null. Checking localStorage.');
@@ -438,18 +490,26 @@ document.addEventListener('DOMContentLoaded', () => {
         spotifyDeviceId = device_id;
         deviceReadyTimestamp = Date.now();
         
-        // Wait longer before attempting playback to ensure device is fully registered
-        console.log('Waiting for device to be fully registered with Spotify backend...');
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        console.log('Attempting to start playback...');
-        const success = await fetchAndPlayRandomLikedSong(spotifyDeviceId);
-        if (!success && playbackAttempts < 2) {
-          // One more retry after a longer delay
-          console.log('Initial playback failed, retrying in 3 seconds...');
-          setTimeout(async () => {
-            await fetchAndPlayRandomLikedSong(spotifyDeviceId);
-          }, 3000);
+        try {
+          // Wait for device to appear in Spotify's backend
+          console.log('Waiting for device to be registered with Spotify backend...');
+          const deviceRegistered = await waitForDeviceInSpotifyList(device_id);
+          
+          if (deviceRegistered) {
+            console.log('Device successfully registered, attempting playback...');
+            const success = await fetchAndPlayRandomLikedSong(spotifyDeviceId);
+            if (!success && playbackAttempts < 2) {
+              console.log('Initial playback failed, retrying in 5 seconds...');
+              setTimeout(async () => {
+                await fetchAndPlayRandomLikedSong(spotifyDeviceId);
+              }, 5000);
+            }
+          } else {
+            console.error('Device failed to register with Spotify backend');
+            updateNowPlayingUI(null);
+          }
+        } catch (error) {
+          console.error('Error during device initialization:', error);
         }
     });
 
@@ -507,19 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         if(timeCurrentEl) timeCurrentEl.textContent = formatTime(state.position);
         
-        // Log state changes for debugging
-        console.log(`Player state: ${state.paused ? 'paused' : 'playing'} at position ${formatTime(state.position)}`);
-        
-        // If track loaded but immediately paused at 0, try to resume
-        if (state.paused && state.position === 0 && currentTrack && deviceReadyTimestamp && (Date.now() - deviceReadyTimestamp) < 10000) {
-          console.log('Track paused at start, attempting to resume...');
-          setTimeout(async () => {
-            if (spotifyPlayer && spotifyDeviceId) {
-              console.log('Attempting to resume paused track...');
-              await fetchWebApi('/me/player/play', 'PUT');
-            }
-          }, 1000);
-        }
+        console.log(`Player state: ${state.paused ? 'paused' : 'playing'} at position ${formatTime(state.position)} - Track: ${currentTrack ? currentTrack.name : 'none'}`);
     });
 
     console.log('Connecting player...');
