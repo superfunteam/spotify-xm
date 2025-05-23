@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Special+Gothic+Condensed+One&display=swap" rel="stylesheet">
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
     <link href="./src/output.css" rel="stylesheet">
 </head>
 <body class="w-full bg-emerald-950 m-0 p-0 text-white flex flex-col items-start justify-start h-screen min-h-screen overflow-hidden">
@@ -193,6 +194,213 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
+  // Global variables for Spotify player and device ID
+  let spotifyPlayer = null;
+  let spotifyDeviceId = null;
+  let currentAccessToken = null; // Store the current access token globally for API calls
+
+  function updateNowPlayingUI(track) {
+    const coverArtEl = document.querySelector('.now-playing .cover');
+    const trackTitleEl = document.querySelector('.now-playing .track-title');
+    const artistNameEl = document.querySelector('.now-playing .artist-name');
+    const albumNameEl = document.querySelector('.now-playing .album-title'); // Make sure you have an element with this class
+    const timeCurrentEl = document.querySelector('.now-playing .time-current');
+    const timeTotalEl = document.querySelector('.now-playing .time-total');
+
+    if (!track) {
+        if(coverArtEl) coverArtEl.style.backgroundImage = `url('./placeholder.jpg')`;
+        if(trackTitleEl) trackTitleEl.textContent = '-';
+        if(artistNameEl) artistNameEl.textContent = 'Nothing Playing';
+        if(albumNameEl) albumNameEl.textContent = '-';
+        if(timeCurrentEl) timeCurrentEl.textContent = '0:00';
+        if(timeTotalEl) timeTotalEl.textContent = '0:00';
+        return;
+    }
+
+    const albumArtUrl = track.album.images[0] ? track.album.images[0].url : './placeholder.jpg';
+    const artists = track.artists.map(artist => artist.name).join(', ');
+    const formatTime = (ms) => {
+        const minutes = Math.floor(ms / 60000);
+        const seconds = ((ms % 60000) / 1000).toFixed(0);
+        return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
+    };
+
+    if (coverArtEl) coverArtEl.style.backgroundImage = `url('${albumArtUrl}')`;
+    if (trackTitleEl) trackTitleEl.textContent = track.name;
+    if (artistNameEl) artistNameEl.textContent = artists;
+    if (albumNameEl) albumNameEl.textContent = track.album.name; 
+    // Player state doesn't directly give current time for non-active device, rely on player_state_changed or an interval
+    if (timeTotalEl) timeTotalEl.textContent = formatTime(track.duration_ms);
+    // Current time will be updated by player_state_changed event more accurately
+    if (timeCurrentEl) timeCurrentEl.textContent = '0:00'; // Initial
+
+    // Update station title display if needed (you had a <p class="station"> element)
+    const stationTitleDisplay = document.querySelector('.now-playing .station-name'); // Make sure you have this element
+    if (stationTitleDisplay) stationTitleDisplay.textContent = "Now Playing"; // Or actual station if applicable
+  }
+
+  async function fetchWebApi(endpoint, method, body) {
+    if (!currentAccessToken) {
+        console.error('Access token is not available for API call');
+        // Potentially trigger re-authentication or refresh token logic here
+        return null;
+    }
+    const res = await fetch(`https://api.spotify.com/v1${endpoint}`,
+    {
+        headers: {
+            'Authorization': `Bearer ${currentAccessToken}`,
+            'Content-Type': 'application/json' // Added for POST/PUT if body is JSON
+        },
+        method,
+        body: body ? JSON.stringify(body) : undefined
+    });
+    if (!res.ok) {
+        console.error(`Spotify API Error (${res.status}) for ${method} ${endpoint}:`, await res.json().catch(() => ({})));
+        if (res.status === 401) { // Token expired or invalid
+            // Attempt to refresh token or re-authenticate
+            console.error('Token expired or invalid. Implement refresh logic or re-auth.');
+            // For now, show auth overlay
+            if(spotifyAuthOverlay) spotifyAuthOverlay.style.display = 'flex';
+            localStorage.removeItem('spotify_access_token');
+            localStorage.removeItem('spotify_token_expires_at');
+            localStorage.removeItem('spotify_refresh_token');
+        }
+        return null;
+    }
+    try {
+        return await res.json();
+    } catch (e) {
+        // Handle cases where response might be empty (e.g., 204 No Content for player commands)
+        if (res.status === 204) return { success: true }; 
+        console.error('Error parsing Spotify API JSON response:', e);
+        return null;
+    }
+  }
+
+  async function playTrack(trackUri, deviceId) {
+    if (!deviceId) {
+        console.error('No device ID available to play track.');
+        return;
+    }
+    const result = await fetchWebApi(`/me/player/play?device_id=${deviceId}`, 'PUT', {
+        uris: [trackUri]
+    });
+    if (result) {
+        console.log('Playback started for track:', trackUri);
+    }
+  }
+
+  async function fetchAndPlayRandomLikedSong(deviceId) {
+    console.log('Fetching liked songs...');
+    // Get a few liked songs, pick one randomly
+    const data = await fetchWebApi('/me/tracks?limit=20', 'GET'); 
+    if (data && data.items && data.items.length > 0) {
+        const randomIndex = Math.floor(Math.random() * data.items.length);
+        const randomTrack = data.items[randomIndex].track;
+        if (randomTrack && randomTrack.uri) {
+            console.log('Playing random liked song:', randomTrack.name);
+            playTrack(randomTrack.uri, deviceId);
+        } else {
+            console.error('Could not get a valid track URI from liked songs.');
+            updateNowPlayingUI(null); // Clear UI if no track
+        }
+    } else {
+        console.error('No liked songs found or error fetching them.');
+        // Display a message to the user, e.g., in the now playing area
+        const artistNameEl = document.querySelector('.now-playing .artist-name');
+        if(artistNameEl) artistNameEl.textContent = 'No liked songs found.';
+        updateNowPlayingUI(null); // Clear UI
+    }
+  }
+
+  function initializePlayer(accessToken) {
+    currentAccessToken = accessToken; // Store for API calls
+    console.log('Initializing Spotify Web Playback SDK with token:', accessToken);
+
+    spotifyPlayer = new Spotify.Player({
+        name: 'SuperFun Music Player',
+        getOAuthToken: cb => { cb(accessToken); }, // Use the initially provided token
+        volume: 0.5
+    });
+
+    spotifyPlayer.addListener('ready', ({ device_id }) => {
+        console.log('Spotify Player Ready with Device ID', device_id);
+        spotifyDeviceId = device_id;
+        // Automatically play a random liked song once ready
+        fetchAndPlayRandomLikedSong(spotifyDeviceId);
+    });
+
+    spotifyPlayer.addListener('not_ready', ({ device_id }) => {
+        console.log('Device ID has gone offline', device_id);
+        spotifyDeviceId = null;
+        updateNowPlayingUI(null);
+    });
+
+    spotifyPlayer.addListener('initialization_error', ({ message }) => {
+        console.error('Failed to initialize Spotify player:', message);
+        updateNowPlayingUI(null);
+    });
+
+    spotifyPlayer.addListener('authentication_error', ({ message }) => {
+        console.error('Spotify player authentication error:', message);
+        // This usually means the token is invalid or expired. Force re-auth.
+        if(spotifyAuthOverlay) spotifyAuthOverlay.style.display = 'flex';
+        localStorage.removeItem('spotify_access_token');
+        localStorage.removeItem('spotify_token_expires_at');
+        localStorage.removeItem('spotify_refresh_token');
+        currentAccessToken = null;
+        updateNowPlayingUI(null);
+    });
+
+    spotifyPlayer.addListener('account_error', ({ message }) => {
+        console.error('Spotify player account error (e.g., no Premium?):', message);
+        // Display a message to the user that Premium might be required
+        const artistNameEl = document.querySelector('.now-playing .artist-name');
+        if(artistNameEl) artistNameEl.textContent = 'Spotify Premium required for playback.';
+        updateNowPlayingUI(null);
+    });
+
+    spotifyPlayer.addListener('playback_error', ({ message }) => {
+        console.error('Spotify player playback error:', message);
+        updateNowPlayingUI(null);
+    });
+
+    spotifyPlayer.addListener('player_state_changed', (state) => {
+        if (!state) {
+            console.warn('Player state changed to null.');
+            updateNowPlayingUI(null);
+            return;
+        }
+        console.log('Player state changed:', state);
+        const currentTrack = state.track_window.current_track;
+        updateNowPlayingUI(currentTrack);
+
+        // Update current time display
+        const timeCurrentEl = document.querySelector('.now-playing .time-current');
+        const formatTime = (ms) => {
+            const minutes = Math.floor(ms / 60000);
+            const seconds = ((ms % 60000) / 1000).toFixed(0);
+            return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
+        };
+        if(timeCurrentEl) timeCurrentEl.textContent = formatTime(state.position);
+
+        // Handle play/pause button state (if you add one)
+        // const playButton = document.getElementById('play-pause-button'); 
+        // if (playButton) {
+        //    playButton.innerHTML = state.paused ? 'Play' : 'Pause';
+        // }
+    });
+
+    spotifyPlayer.connect().then(success => {
+        if (success) {
+            console.log('The Web Playback SDK successfully connected to Spotify!');
+        } else {
+            console.error('The Web Playback SDK failed to connect to Spotify.');
+        }
+    });
+  }
+
+  // Modify handleAuth to call initializePlayer
   function handleAuth() {
     const { accessToken, refreshToken, expiresIn, error } = parseHashParams();
     const authOverlayTitle = spotifyAuthOverlay ? spotifyAuthOverlay.querySelector('h2') : null;
@@ -204,9 +412,7 @@ document.addEventListener('DOMContentLoaded', () => {
       authOverlayTitle.textContent = 'Authentication Failed';
       authOverlayButton.textContent = 'TRY AGAIN';
       authOverlayMessage.textContent = `Error: ${error}. Please ensure you have granted permissions and try again.`;
-      // Clear the hash
       window.location.hash = '';
-      // Ensure overlay is visible
       if (spotifyAuthOverlay) spotifyAuthOverlay.style.display = 'flex'; 
       return;
     }
@@ -217,32 +423,27 @@ document.addEventListener('DOMContentLoaded', () => {
       if (refreshToken) {
         localStorage.setItem('spotify_refresh_token', refreshToken);
       }
-      console.log('Spotify Access Token Stored.');
+      console.log('Spotify Access Token Stored from Hash.');
       if (spotifyAuthOverlay) spotifyAuthOverlay.style.display = 'none';
-      // Clear the hash
       window.location.hash = '';
-      // TODO: Initialize Spotify Web Playback SDK here
-      // initializePlayer(accessToken);
+      initializePlayer(accessToken); // Initialize player with new token
       return;
     }
 
-    // Check for existing valid token if no new token/error in hash
     const storedAccessToken = localStorage.getItem('spotify_access_token');
     const tokenExpiresAt = localStorage.getItem('spotify_token_expires_at');
 
     if (storedAccessToken && tokenExpiresAt && Date.now() < parseInt(tokenExpiresAt, 10)) {
       console.log('Found valid stored Spotify Access Token.');
       if (spotifyAuthOverlay) spotifyAuthOverlay.style.display = 'none';
-      // TODO: Initialize Spotify Web Playback SDK here
-      // initializePlayer(storedAccessToken);
+      initializePlayer(storedAccessToken); // Initialize player with stored token
     } else {
-      // No valid token, ensure overlay is visible
       console.log('No valid token found. Displaying auth overlay.');
       if (spotifyAuthOverlay) spotifyAuthOverlay.style.display = 'flex';
-      // Optionally, clear expired token data
       localStorage.removeItem('spotify_access_token');
       localStorage.removeItem('spotify_token_expires_at');
       localStorage.removeItem('spotify_refresh_token');
+      currentAccessToken = null;
     }
   }
 
