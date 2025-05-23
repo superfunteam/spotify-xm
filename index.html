@@ -285,6 +285,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  async function waitForSDKStateReady(maxWaitTime = 15000) {
+    console.log('Waiting for SDK internal state to be ready...');
+    const startTime = Date.now();
+    
+    while (Date.now() - startTime < maxWaitTime) {
+      try {
+        if (spotifyPlayer) {
+          const state = await spotifyPlayer.getCurrentState();
+          if (state !== null) {
+            console.log('SDK state is ready!', state);
+            return true;
+          }
+        }
+        
+        console.log('SDK state still null, waiting 1 second...');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch (error) {
+        console.log('Error checking SDK state:', error);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+    
+    console.error('SDK state never became ready');
+    return false;
+  }
+
   async function waitForDeviceInSpotifyList(deviceId, maxWaitTime = 30000) {
     console.log(`Waiting for device ${deviceId} to appear in Spotify's device list...`);
     const startTime = Date.now();
@@ -563,42 +589,33 @@ document.addEventListener('DOMContentLoaded', () => {
         deviceReadyTimestamp = Date.now();
         
         try {
-          // Wait for device to appear in Spotify's backend
+          // Step 1: Wait for device to appear in Spotify's backend
           console.log('Waiting for device to be registered with Spotify backend...');
           const deviceRegistered = await waitForDeviceInSpotifyList(device_id);
           
           if (deviceRegistered) {
             console.log('Device successfully registered with backend');
             
-            // Additional wait to ensure device is fully initialized
-            console.log('Waiting additional time for device initialization...');
-            await new Promise(resolve => setTimeout(resolve, 3000));
+            // Step 2: Wait for SDK internal state to be ready
+            console.log('Waiting for SDK internal state to be ready...');
+            const sdkReady = await waitForSDKStateReady();
             
-            // Test device connectivity with a simple state check
-            console.log('Testing device connectivity...');
-            try {
-              const testState = await spotifyPlayer.getCurrentState();
-              console.log('Device state test:', testState ? 'Available' : 'Not available');
-              
-              if (testState !== null) {
-                console.log('Device is responsive, attempting playback...');
-                const success = await fetchAndPlayRandomLikedSong(spotifyDeviceId);
-                if (!success && playbackAttempts < 2) {
-                  console.log('Initial playback failed, retrying in 8 seconds...');
-                  setTimeout(async () => {
-                    await fetchAndPlayRandomLikedSong(spotifyDeviceId);
-                  }, 8000);
-                }
-              } else {
-                console.error('Device state is null, device not ready');
-                // Try again after longer wait
+            if (sdkReady) {
+              console.log('SDK is fully ready, attempting playback...');
+              const success = await fetchAndPlayRandomLikedSong(spotifyDeviceId);
+              if (!success && playbackAttempts < 2) {
+                console.log('Initial playback failed, retrying in 5 seconds...');
                 setTimeout(async () => {
-                  console.log('Retrying device initialization...');
                   await fetchAndPlayRandomLikedSong(spotifyDeviceId);
-                }, 10000);
+                }, 5000);
               }
-            } catch (stateError) {
-              console.error('Error testing device state:', stateError);
+            } else {
+              console.error('SDK internal state never became ready');
+              // Try anyway as a fallback
+              setTimeout(async () => {
+                console.log('Attempting playback despite SDK state issues...');
+                await fetchAndPlayRandomLikedSong(spotifyDeviceId);
+              }, 10000);
             }
           } else {
             console.error('Device failed to register with Spotify backend');
