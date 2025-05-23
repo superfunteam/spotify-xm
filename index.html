@@ -265,6 +265,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Connect to the player!
       player.connect();
+      
+      // Set up MediaSession handlers for Bluetooth controls
+      setupMediaSessionHandlers();
     };
 
     // Trigger the callback if SDK is already loaded
@@ -546,7 +549,71 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update elapsed time initially
     updateElapsedTime(position, duration);
 
+    // Update MediaSession metadata for Bluetooth devices and system controls
+    updateMediaSession(current_track);
+
     console.log('Now playing:', current_track.name, 'by', current_track.artists[0].name);
+  }
+
+  function updateMediaSession(track) {
+    if ('mediaSession' in navigator) {
+      console.log('Updating MediaSession metadata for Bluetooth/system controls');
+      
+      // Set metadata that appears on lock screen, notifications, car displays, etc.
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: track.name,
+        artist: track.artists.map(artist => artist.name).join(', '),
+        album: track.album.name,
+        artwork: track.album.images.map(image => ({
+          src: image.url,
+          sizes: `${image.width}x${image.height}`,
+          type: 'image/jpeg'
+        }))
+      });
+
+      console.log('MediaSession metadata updated:', track.name);
+    }
+  }
+
+  function setupMediaSessionHandlers() {
+    if ('mediaSession' in navigator) {
+      console.log('Setting up MediaSession handlers for Bluetooth/system controls');
+
+      // Handle next track from Bluetooth devices, headphones, car systems, etc.
+      navigator.mediaSession.setActionHandler('nexttrack', () => {
+        console.log('Next track triggered from Bluetooth/system control');
+        if (currentAccessToken && deviceId) {
+          playRandomLikedSongAtRandomPosition(currentAccessToken);
+        }
+      });
+
+      // Handle previous track (we'll also make it go to random position for consistency)
+      navigator.mediaSession.setActionHandler('previoustrack', () => {
+        console.log('Previous track triggered from Bluetooth/system control');
+        if (currentAccessToken && deviceId) {
+          playRandomLikedSongAtRandomPosition(currentAccessToken);
+        }
+      });
+
+      // Handle play/pause from external controls
+      navigator.mediaSession.setActionHandler('play', async () => {
+        console.log('Play triggered from Bluetooth/system control');
+        if (player) {
+          await player.resume();
+        }
+      });
+
+      navigator.mediaSession.setActionHandler('pause', async () => {
+        console.log('Pause triggered from Bluetooth/system control');
+        if (player) {
+          await player.pause();
+        }
+      });
+
+      console.log('MediaSession handlers configured');
+    } else {
+      console.log('MediaSession API not supported in this browser');
+    }
   }
 
   function handleAuth() {
