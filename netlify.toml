@@ -1,0 +1,9 @@
+[functions]
+  directory = "netlify/functions/"
+
+[dev]
+  framework = "#static"
+  publish = "." # Serve from the root directory where index.html is
+  command = "npm run dev" # Your Tailwind CSS watch command
+  targetPort = 3999 # The port your static server (Tailwind) is on
+  port = 8888 # The port Netlify Dev will run on 
