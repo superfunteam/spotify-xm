@@ -129,11 +129,21 @@
                 <span class="track-title text-2xl line-clamp-2">Industry Baby (or a Longer Title Here)</span>
                
             </h2>
-            <p class="album-title text-emerald-300 opacity-50">Montero</p>
+            <h4 class="album-title special-gothic-condensed-one-regular text-md text-emerald-600 leading-tight">Montero</h4>
             </div>
             <div class="time flex flex-row justify-between">
                 <div class="time-elapsed">0:23</div>
-                <div class="time-remaining">3:41</div>
+                <div class="time-total">3:41</div>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="w-full bg-emerald-200 rounded-full h-1 my-2">
+              <div class="progress bg-emerald-600 h-1 rounded-full" style="width: 0%;"></div>
+            </div>
+
+            <div class="playback-time special-gothic-condensed-one-regular text-lg text-emerald-700 mt-auto flex flex-row items-center justify-between">
+                <div class="time-current">0:00</div>
+                <div class="time-total">3:41</div>
             </div>
         </div>
         
@@ -385,18 +395,51 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!state) {
             console.warn('Player state changed to null.');
             updateNowPlayingUI(null);
+            // Clear progress bar and time if state is null
+            const progressEl = document.querySelector('.now-playing .progress');
+            if(progressEl) progressEl.style.width = '0%';
+            const timeCurrentEl = document.querySelector('.now-playing .time-current'); // Or your .time-elapsed
+            if(timeCurrentEl) timeCurrentEl.textContent = '0:00';
+            const timeTotalEl = document.querySelector('.now-playing .time-total');
+            if(timeTotalEl) timeTotalEl.textContent = '0:00';
             return;
         }
         console.log('Player state changed:', state);
         const currentTrack = state.track_window.current_track;
-        updateNowPlayingUI(currentTrack);
-        const timeCurrentEl = document.querySelector('.now-playing .time-current');
+        updateNowPlayingUI(currentTrack); // This will update cover, title, artist, album, and initial total time
+
         const formatTime = (ms) => {
             const minutes = Math.floor(ms / 60000);
             const seconds = ((ms % 60000) / 1000).toFixed(0);
             return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
         };
+
+        // Update current time display (e.g., .time-elapsed or .time-current)
+        const timeCurrentEl = document.querySelector('.now-playing .time-current'); 
         if(timeCurrentEl) timeCurrentEl.textContent = formatTime(state.position);
+
+        // Update total time display (if not already set by updateNowPlayingUI or if it can change)
+        const timeTotalEl = document.querySelector('.now-playing .time-total');
+        if(timeTotalEl && currentTrack) timeTotalEl.textContent = formatTime(currentTrack.duration_ms);
+        
+        // Update progress bar width
+        const progressEl = document.querySelector('.now-playing .progress');
+        if (progressEl && currentTrack && currentTrack.duration_ms > 0) {
+            const progressPercent = (state.position / currentTrack.duration_ms) * 100;
+            progressEl.style.width = `${progressPercent}%`;
+        } else if (progressEl) {
+            progressEl.style.width = '0%';
+        }
+
+        // Handle play/pause button state for your big play button (if needed)
+        const playButtonSvg = document.querySelector('#main-play-button svg path'); // More specific selector for the path
+        // This is a simple example; you might need to swap SVGs or classes for a visual change
+        if (playButtonSvg) {
+            // Assuming your play SVG path is the default state
+            // You would need a different path for a pause icon to swap to
+            // For now, this won't visually change your current play button to a pause icon
+            // console.log(state.paused ? "Should show Play icon" : "Should show Pause icon");
+        }
     });
 
     spotifyPlayer.connect().then(success => {
@@ -482,7 +525,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <!-- Global Playback Scrubber -->
 <div class="fixed bottom-0 top-0 left-0 w-full opacity-10 pointer-events-none z-1">
-  <div class="h-full bg-white" style="width: 20%;"></div>
+  <div class="progressh-full bg-white transition-all" style="width: 20%;"></div>
 </div>
 
 <!-- Spotify Auth Overlay -->
