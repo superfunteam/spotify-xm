@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" class="h-screen">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Player</title>
+    <link href="./src/output.css" rel="stylesheet">
+</head>
+<body class="w-full bg-emerald-950 m-0 p-0 text-white flex flex-col items-start justify-start h-screen min-h-screen overflow-hidden">
+    <div class="stations py-2flex flex-col gap-0 bg-emerald-900 rounded-br-3xl w-[calc(100%-1rem)] mr-8 shadow-[0_0_200px_rgba(0,0,0,1)] z-2">
+
+    
+        <!-- Station Carousel -->
+        <div class="mb-1 overflow-x-auto flex w-full space-x-4 no-scrollbar px-6 py-6 gap-3">
+          
+
+          <!-- Station 1: Liked -->
+          <div class="shrink-0 flex flex-col items-center space-y-1 w-40 rounded-lg">
+            <div class="aspect-[9/12] w-full rounded-lg shadow-md bg-cover bg-center" style="background-image: url('./placeholder.jpg');">
+              <span class="sr-only">Liked</span>
+            </div>
+            <h2 class="text-sm text-emerald-800 font-medium mt-1 truncate w-full">Liked</h2>
+          </div>
+          <!-- Station 2: Oldies -->
+          <div class="shrink-0 flex flex-col items-center space-y-1 w-40 rounded-lg">
+            <div class="aspect-[9/12] w-full rounded-lg shadow-md bg-cover bg-center" style="background-image: url('./placeholder.jpg');">
+              <span class="sr-only">Oldies</span>
+            </div>
+            <h2 class="text-sm text-emerald-800 font-medium mt-1 truncate w-full">Oldies</h2>
+          </div>
+          <!-- Station 3: 70's -->
+          <div class="shrink-0 flex flex-col items-center space-y-1 w-40 rounded-lg">
+            <div class="aspect-[9/12] w-full rounded-lg shadow-md bg-cover bg-center" style="background-image: url('./placeholder.jpg');">
+              <span class="sr-only">70's</span>
+            </div>
+            <h2 class="text-sm text-emerald-800 font-medium mt-1 truncate w-full">70's</h2>
+          </div>
+          <!-- Station 4: 80's -->
+          <div class="shrink-0 flex flex-col items-center space-y-1 w-40 rounded-lg">
+            <div class="aspect-[9/12] w-full rounded-lg shadow-md bg-cover bg-center" style="background-image: url('./placeholder.jpg');">
+              <span class="sr-only">80's</span>
+            </div>
+            <h2 class="text-sm text-emerald-800 font-medium mt-1 truncate w-full">80's</h2>
+          </div>
+          <!-- Station 5: 90's -->
+          <div class="shrink-0 flex flex-col items-center space-y-1 w-40 rounded-lg">
+            <div class="aspect-[9/12] w-full rounded-lg shadow-md bg-cover bg-center" style="background-image: url('stations/station-90s.png');">
+              <span class="sr-only">90's</span>
+            </div>
+            <h2 class="text-sm text-emerald-800 font-medium mt-1 truncate w-full">90's</h2>
+          </div>
+          <!-- Station 6: 2k -->
+          <div class="shrink-0 flex flex-col items-center space-y-1 w-40 rounded-lg">
+            <div class="aspect-[9/12] w-full rounded-lg shadow-md bg-cover bg-center" style="background-image: url('./placeholder.jpg');">
+              <span class="sr-only">2k</span>
+            </div>
+            <h2 class="text-sm text-emerald-800 font-medium mt-1 truncate w-full">2k</h2>
+          </div>
+          <!-- Station 7: New Music -->
+          <div class="shrink-0 flex flex-col items-center space-y-1 w-40 rounded-lg">
+            <div class="aspect-[9/12] w-full rounded-lg shadow-md bg-cover bg-center" style="background-image: url('./placeholder.jpg');">
+              <span class="sr-only">New Music</span>
+            </div>
+            <h2 class="text-sm text-emerald-800 font-medium mt-1 truncate w-full">New Music</h2>
+          </div>
+          <!-- Station 8: Party Bangers -->
+          <div class="shrink-0 flex flex-col items-center space-y-1 w-40 rounded-lg">
+            <div class="aspect-[9/12] w-full rounded-lg shadow-md bg-cover bg-center" style="background-image: url('./placeholder.jpg');">
+              <span class="sr-only">Party Bangers</span>
+            </div>
+            <h2 class="text-sm text-emerald-800 font-medium mt-1 truncate w-full">Party Bangers</h2>
+          </div>
+          <!-- Station 9: High School Jams -->
+          <div class="shrink-0 flex flex-col items-center space-y-1 w-40 rounded-lg">
+            <div class="aspect-[9/12] w-full rounded-lg shadow-md bg-cover bg-center" style="background-image: url('./placeholder.jpg');">
+              <span class="sr-only">High School Jams</span>
+            </div>
+            <h2 class="text-sm text-emerald-800 font-medium mt-1 truncate w-full">High School Jams</h2>
+          </div>
+          <!-- Station 10: Talk -->
+          <div class="shrink-0 flex flex-col items-center space-y-1 w-40 rounded-lg">
+            <div class="aspect-[9/12] w-full rounded-lg shadow-md bg-cover bg-center" style="background-image: url('./placeholder.jpg');">
+              <span class="sr-only">Talk</span>
+            </div>
+            <h2 class="text-sm text-emerald-800 font-medium mt-1 truncate w-full">Talk</h2>
+          </div>
+        </div>
+        
+    </div>
+
+    <div class="now-playing w-full p-6 grid grid-cols-2 gap-6">
+        <div class="aspect-square cover w-full h-full bg-cover bg-center" style="background-image: url('cover.png');">
+        </div>
+        <div class="track-meta w-full flex flex-col gap-0">
+            <h2 class="track flex flex-col gap-2r text-xl font-semibold">
+                <span class="artist-name uppercase text-base text-emerald-300">Lil Nas X</span>
+                <span class="track-title text-2xl">Industry Baby</span>
+               
+            </h2>
+            <p class="album-title text-emerald-300 opacity-50">Montero</p>
+
+            
+        </div>
+        
+        
+    </div>
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const stations = document.querySelectorAll('.shrink-0.flex.flex-col.items-center.space-y-1');
+  const activeRingClasses = ['ring-4', 'ring-emerald-500', 'ring-offset-4', 'ring-offset-emerald-950'];
+
+  function setActiveStation(targetStation) {
+    if (!targetStation) return;
+    stations.forEach(station => {
+      station.classList.remove(...activeRingClasses);
+    });
+    targetStation.classList.add(...activeRingClasses);
+  }
+
+  // Set initial active station
+  if (stations.length > 0) {
+    setActiveStation(stations[0]);
+  }
+
+  stations.forEach(station => {
+    station.addEventListener('click', () => {
+      setActiveStation(station);
+      // Ensure the station scrolls into view.
+      station.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    });
+  });
+});
+</script>
+
+<!-- Global Playback Scrubber -->
+<div class="fixed bottom-0 top-0 left-0 w-full opacity-10 pointer-events-none z-1">
+  <div class="h-full bg-white" style="width: 20%;"></div>
+</div>
+</body>
+</html> 
