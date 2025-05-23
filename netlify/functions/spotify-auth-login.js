@@ -20,7 +20,9 @@ exports.handler = async function(event, context) {
     'user-modify-playback-state',
     'user-read-playback-state',
     'playlist-read-private',
-    'playlist-read-collaborative'
+    'playlist-read-collaborative',
+    'user-library-read',
+    'user-library-modify'
     // Add any other scopes your app might need
   ].join(' ');
 
