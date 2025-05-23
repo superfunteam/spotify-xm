@@ -98,7 +98,7 @@
         
     </div>
 
-    <div class="now-playing w-full p-6 grid grid-cols-2 gap-6">
+    <div class="now-playing w-full p-6 grid grid-cols-2 gap-6 z-2">
         <div class="aspect-square cover w-full h-full bg-cover bg-center" style="background-image: url('cover.png');">
         </div>
         <div class="track-meta w-full flex flex-col gap-0 justify-between">
@@ -150,8 +150,8 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <!-- Global Playback Scrubber -->
-<div class="fixed bottom-0 top-0 left-0 w-full opacity-10 pointer-events-none z-1">
-  <div class="h-full bg-white" style="width: 20%;"></div>
+<div class="fixed bottom-0 top-0 left-0 w-full pointer-events-none z-1">
+  <div class="h-full bg-white/10 border-r-2 border-white/10" style="width: 20%;"></div>
 </div>
 </body>
 </html> 
