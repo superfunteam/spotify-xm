@@ -228,6 +228,20 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
         console.log('Player state changed:', state);
+        
+        // Check if track has ended (position is very close to duration and not paused)
+        if (state.position !== undefined && state.duration !== undefined) {
+          const progressPercentage = (state.position / state.duration) * 100;
+          
+          // If track is at 98%+ completion and paused, it likely ended naturally
+          if (progressPercentage >= 98 && state.paused && !state.loading) {
+            console.log('Track appears to have ended naturally, playing next random song from beginning');
+            setTimeout(() => {
+              playRandomLikedSongFromBeginning(currentAccessToken);
+            }, 1000); // Small delay to ensure the track has fully ended
+          }
+        }
+        
         updateNowPlayingUI(state);
         startTimeUpdates(state);
       });
@@ -360,6 +374,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
     } catch (error) {
       console.error('Error fetching/playing liked songs:', error);
+    }
+  }
+
+  async function playRandomLikedSongFromBeginning(accessToken) {
+    try {
+      console.log('Fetching liked songs for next track (from beginning)...');
+      
+      // Get user's liked songs
+      const response = await fetch('https://api.spotify.com/v1/me/tracks?limit=50', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch liked songs: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.items.length === 0) {
+        console.log('No liked songs found');
+        return;
+      }
+
+      // Pick a random track
+      const randomIndex = Math.floor(Math.random() * data.items.length);
+      const randomTrack = data.items[randomIndex].track;
+      
+      console.log('Playing next random track from beginning:', randomTrack.name, 'by', randomTrack.artists[0].name);
+
+      // Start playing the specific track from the beginning
+      await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          uris: [randomTrack.uri]
+        })
+      });
+
+      console.log('Successfully started next track from beginning');
+
+    } catch (error) {
+      console.error('Error playing next random song from beginning:', error);
     }
   }
 
