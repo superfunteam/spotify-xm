@@ -369,31 +369,70 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log(`Playing track ${trackUri} on device ${deviceId}`);
     
     try {
-      // Use the Web API play endpoint instead of SDK
+      // First try using the SDK's own play method
+      if (spotifyPlayer) {
+        console.log('Attempting playback using SDK player...');
+        
+        // Use the SDK to play the track
+        const state = await spotifyPlayer.getCurrentState();
+        if (state) {
+          console.log('Current state available, using SDK playback...');
+          
+          // Try to play using the SDK
+          try {
+            await spotifyPlayer.resume();
+            console.log('SDK resume attempted');
+            
+            // Wait a moment and check state
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            const newState = await spotifyPlayer.getCurrentState();
+            if (newState && !newState.paused) {
+              console.log('SDK playback successful');
+              return true;
+            }
+          } catch (sdkError) {
+            console.log('SDK resume failed, trying Web API approach...');
+          }
+        }
+      }
+      
+      // Fallback to Web API method
+      console.log('Using Web API for playback...');
       const result = await fetchWebApi(`/me/player/play?device_id=${deviceId}`, 'PUT', {
         uris: [trackUri],
         position_ms: 0
       });
       
       if (result !== null) {
-        console.log('Track play command sent successfully');
+        console.log('Web API play command sent successfully');
         
         // Wait a moment for playback to start
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 1500));
         
-        // Verify playback started
+        // Check using SDK state instead of Web API
+        if (spotifyPlayer) {
+          const sdkState = await spotifyPlayer.getCurrentState();
+          if (sdkState && !sdkState.paused && sdkState.position > 0) {
+            console.log('Playback confirmed via SDK state');
+            return true;
+          } else if (sdkState && sdkState.paused) {
+            console.log('Track loaded but paused, trying SDK resume...');
+            try {
+              await spotifyPlayer.resume();
+              await new Promise(resolve => setTimeout(resolve, 500));
+              const finalState = await spotifyPlayer.getCurrentState();
+              return finalState && !finalState.paused;
+            } catch (resumeError) {
+              console.log('SDK resume failed:', resumeError);
+            }
+          }
+        }
+        
+        // Fallback to Web API state check
         const playbackState = await fetchWebApi('/me/player', 'GET');
         if (playbackState && playbackState.is_playing) {
-          console.log('Playback confirmed as active');
+          console.log('Playback confirmed via Web API');
           return true;
-        } else if (playbackState && !playbackState.is_playing) {
-          console.log('Track loaded but paused, attempting to resume...');
-          const resumeResult = await fetchWebApi('/me/player/play', 'PUT');
-          if (resumeResult !== null) {
-            await new Promise(resolve => setTimeout(resolve, 500));
-            const finalState = await fetchWebApi('/me/player', 'GET');
-            return finalState && finalState.is_playing;
-          }
         }
       }
       
@@ -416,14 +455,47 @@ document.addEventListener('DOMContentLoaded', () => {
         if (randomTrack && randomTrack.uri) {
             console.log('Selected random liked song:', randomTrack.name, 'URI:', randomTrack.uri);
             
-            // Ensure device is ready
-            const deviceReady = await ensureDeviceIsActiveAndReady(deviceId);
-            if (!deviceReady) {
-              console.error('Device not ready for playback');
+            // Try to load the track first using Web API
+            console.log('Loading track into player...');
+            const loadResult = await fetchWebApi(`/me/player/play?device_id=${deviceId}`, 'PUT', {
+              uris: [randomTrack.uri],
+              position_ms: 0
+            });
+            
+            if (loadResult !== null) {
+              // Wait for track to load
+              await new Promise(resolve => setTimeout(resolve, 2000));
+              
+              // Now try to play using SDK
+              if (spotifyPlayer) {
+                try {
+                  const currentState = await spotifyPlayer.getCurrentState();
+                  if (currentState) {
+                    console.log('Track loaded, attempting to play using SDK...');
+                    if (currentState.paused) {
+                      await spotifyPlayer.resume();
+                      console.log('SDK resume command sent');
+                    }
+                    
+                    // Wait and verify
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    const finalState = await spotifyPlayer.getCurrentState();
+                    if (finalState && !finalState.paused) {
+                      console.log('Playback successful via SDK!');
+                      return true;
+                    }
+                  }
+                } catch (sdkError) {
+                  console.log('SDK playback failed:', sdkError);
+                }
+              }
+              
+              // If SDK approach fails, try the robust method
+              return await playTrackRobust(randomTrack.uri, deviceId);
+            } else {
+              console.error('Failed to load track');
               return false;
             }
-            
-            return await playTrackRobust(randomTrack.uri, deviceId);
         } else {
             console.error('Could not get a valid track URI from liked songs.');
             updateNowPlayingUI(null);
@@ -496,13 +568,37 @@ document.addEventListener('DOMContentLoaded', () => {
           const deviceRegistered = await waitForDeviceInSpotifyList(device_id);
           
           if (deviceRegistered) {
-            console.log('Device successfully registered, attempting playback...');
-            const success = await fetchAndPlayRandomLikedSong(spotifyDeviceId);
-            if (!success && playbackAttempts < 2) {
-              console.log('Initial playback failed, retrying in 5 seconds...');
-              setTimeout(async () => {
-                await fetchAndPlayRandomLikedSong(spotifyDeviceId);
-              }, 5000);
+            console.log('Device successfully registered with backend');
+            
+            // Additional wait to ensure device is fully initialized
+            console.log('Waiting additional time for device initialization...');
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            
+            // Test device connectivity with a simple state check
+            console.log('Testing device connectivity...');
+            try {
+              const testState = await spotifyPlayer.getCurrentState();
+              console.log('Device state test:', testState ? 'Available' : 'Not available');
+              
+              if (testState !== null) {
+                console.log('Device is responsive, attempting playback...');
+                const success = await fetchAndPlayRandomLikedSong(spotifyDeviceId);
+                if (!success && playbackAttempts < 2) {
+                  console.log('Initial playback failed, retrying in 8 seconds...');
+                  setTimeout(async () => {
+                    await fetchAndPlayRandomLikedSong(spotifyDeviceId);
+                  }, 8000);
+                }
+              } else {
+                console.error('Device state is null, device not ready');
+                // Try again after longer wait
+                setTimeout(async () => {
+                  console.log('Retrying device initialization...');
+                  await fetchAndPlayRandomLikedSong(spotifyDeviceId);
+                }, 10000);
+              }
+            } catch (stateError) {
+              console.error('Error testing device state:', stateError);
             }
           } else {
             console.error('Device failed to register with Spotify backend');
@@ -567,7 +663,15 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         if(timeCurrentEl) timeCurrentEl.textContent = formatTime(state.position);
         
-        console.log(`Player state: ${state.paused ? 'paused' : 'playing'} at position ${formatTime(state.position)} - Track: ${currentTrack ? currentTrack.name : 'none'}`);
+        console.log(`Player state: ${state.paused ? 'paused' : 'playing'} at position ${formatTime(state.position)} - Track: ${currentTrack ? currentTrack.name : 'none'} - Loading: ${state.loading || false}`);
+        
+        // If we just got a track loaded but it's paused, and we're within the initial setup window
+        if (state.paused && state.position === 0 && currentTrack && deviceReadyTimestamp && (Date.now() - deviceReadyTimestamp) < 30000) {
+          console.log('New track loaded but paused, this is normal initial state');
+          
+          // Don't immediately try to resume - let our main playback logic handle it
+          // This prevents conflicts between automatic resume attempts and our controlled playback
+        }
     });
 
     console.log('Connecting player...');
