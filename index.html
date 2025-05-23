@@ -156,6 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentAccessToken = null;
   let timeUpdateInterval = null;
   let previousState = null; // Track previous state to detect track endings
+  let trackEndingProcessed = false; // Prevent multiple triggers for the same track ending
 
   function setActiveStation(targetStation) {
     if (!targetStation) return;
@@ -240,15 +241,18 @@ document.addEventListener('DOMContentLoaded', () => {
           console.log('Track ending detection - Previous progress:', previousProgress.toFixed(1) + '%, Current progress:', currentProgress.toFixed(1) + '%, Paused:', state.paused, 'Duration diff:', Math.abs(state.duration - previousState.duration));
           
           // Track ended if:
-          // 1. Previous position was near the end (>90%)
+          // 1. Previous position was near the end (>85%)
           // 2. Current position reset to near 0 (<10%)
-          // 3. Current state is paused
-          // 4. It's the same track (same duration, roughly)
-          if (previousProgress > 90 && currentProgress < 10 && state.paused && 
-              Math.abs(state.duration - previousState.duration) < 5000) {
+          // 3. It's the same track (same duration, roughly)
+          // 4. We haven't already processed this track ending
+          if (previousProgress > 85 && currentProgress < 10 && 
+              Math.abs(state.duration - previousState.duration) < 5000 && !trackEndingProcessed) {
             console.log('Track ended naturally - previous progress:', previousProgress.toFixed(1) + '%, current progress:', currentProgress.toFixed(1) + '%, playing next random song from beginning');
+            trackEndingProcessed = true; // Prevent multiple triggers
             setTimeout(() => {
               playRandomLikedSongFromBeginning(currentAccessToken);
+              // Reset the flag after a delay to allow for future track endings
+              setTimeout(() => { trackEndingProcessed = false; }, 5000);
             }, 1000); // Small delay to ensure the track has fully ended
           }
         } else {
