@@ -109,7 +109,7 @@
         
     </div>
 
-    <div class="now-playing-container relative z-2 mt-2">
+    <div class="now-playing-container w-full relative z-2 mt-2">
         <h2 class="special-gothic-condensed-one-regular text-xl text-white px-6 pt-4 flex flex-row items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 text-emerald-300">
                 <path fill-rule="evenodd" d="M19.952 1.651a.75.75 0 0 1 .298.599V16.303a3 3 0 0 1-2.176 2.884l-1.32.377a2.553 2.553 0 1 1-1.403-4.909l2.311-.66a1.5 1.5 0 0 0 1.088-1.442V6.994l-9 2.572v9.737a3 3 0 0 1-2.176 2.884l-1.32.377a2.553 2.553 0 1 1-1.402-4.909l2.31-.66a1.5 1.5 0 0 0 1.088-1.442V5.25a.75.75 0 0 1 .544-.721l10.5-3a.75.75 0 0 1 .658.122Z" clip-rule="evenodd" />
@@ -313,34 +313,53 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // This function will be called by the Spotify SDK when it's ready
+  let sdkReady = false;
+
   window.onSpotifyWebPlaybackSDKReady = () => {
     console.log('Spotify Web Playback SDK is ready.');
-    // If we already have an access token (e.g., from page load/hash or localStorage),
-    // and the player isn't already initialized, initialize it.
+    sdkReady = true;
+    // If token is already available (e.g. from localStorage on reload before handleAuth finishes),
+    // and player not yet initialized, try to initialize.
     if (currentAccessToken && !spotifyPlayer) {
-      initializePlayerInternal(currentAccessToken);
-    } else if (!currentAccessToken) {
-        console.log('SDK ready, but access token not yet available.');
-        // The handleAuth function will call initializePlayerInternal once token is available.
+        initializePlayerInternal(currentAccessToken);
     }
   };
 
-  // Renamed to avoid conflict and to be called internally once SDK is ready and token is available
   function initializePlayerInternal(accessToken) {
     if (spotifyPlayer) {
-        console.log('Player already initialized.');
-        return;
+        console.log('Player already initialized. Disconnecting old one first.');
+        spotifyPlayer.disconnect(); // Disconnect any existing player
     }
-    currentAccessToken = accessToken; // Ensure global token is set
+    currentAccessToken = accessToken; 
     console.log('Initializing Spotify Web Playback SDK with token (internal):', accessToken);
 
     spotifyPlayer = new Spotify.Player({
-        name: 'SuperFun Music Player',
-        getOAuthToken: cb => { cb(currentAccessToken); }, // Use the globally stored token
+        name: 'SuperFun Music Player', 
+        getOAuthToken: cb => { 
+            // This might be called multiple times by the SDK. Always provide the current valid token.
+            if (!currentAccessToken) {
+                console.warn('getOAuthToken called but currentAccessToken is null. Re-fetching from localStorage.');
+                const storedToken = localStorage.getItem('spotify_access_token');
+                const expiresAt = localStorage.getItem('spotify_token_expires_at');
+                if (storedToken && expiresAt && Date.now() < parseInt(expiresAt, 10)) {
+                    currentAccessToken = storedToken;
+                } else {
+                    // Token is invalid or not found, trigger re-auth
+                    console.error('No valid token for getOAuthToken. Forcing re-auth.');
+                    if(spotifyAuthOverlay) spotifyAuthOverlay.style.display = 'flex';
+                    localStorage.removeItem('spotify_access_token');
+                    localStorage.removeItem('spotify_token_expires_at');
+                    localStorage.removeItem('spotify_refresh_token');
+                    cb(null); // Inform SDK token is not available
+                    return;
+                }
+            }
+            cb(currentAccessToken); 
+        },
         volume: 0.5
     });
 
+    // Event listeners (KEEP ALL EXISTING spotifyPlayer.addListener BLOCKS AS THEY WERE)
     spotifyPlayer.addListener('ready', ({ device_id }) => {
         console.log('Spotify Player Ready with Device ID', device_id);
         spotifyDeviceId = device_id;
@@ -365,7 +384,8 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.removeItem('spotify_token_expires_at');
         localStorage.removeItem('spotify_refresh_token');
         currentAccessToken = null;
-        spotifyPlayer = null; // Reset player
+        if (spotifyPlayer) { spotifyPlayer.disconnect(); }
+        spotifyPlayer = null; 
         updateNowPlayingUI(null);
     });
 
@@ -398,17 +418,23 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         if(timeCurrentEl) timeCurrentEl.textContent = formatTime(state.position);
     });
+    // END OF Event listeners 
 
     spotifyPlayer.connect().then(success => {
         if (success) {
             console.log('The Web Playback SDK successfully connected to Spotify!');
         } else {
-            console.error('The Web Playback SDK failed to connect to Spotify.');
+            console.error('The Web Playback SDK failed to connect to Spotify. Clearing player.');
+            if (spotifyPlayer) { spotifyPlayer.disconnect(); }
+            spotifyPlayer = null; 
         }
+    }).catch(error => {
+        console.error('Error connecting player:', error);
+        if (spotifyPlayer) { spotifyPlayer.disconnect(); }
+        spotifyPlayer = null; 
     });
   }
 
-  // Modify handleAuth to store token and call initializePlayerInternal if SDK is ready
   function handleAuth() {
     const { accessToken, refreshToken, expiresIn, error } = parseHashParams();
     const authOverlayTitle = spotifyAuthOverlay ? spotifyAuthOverlay.querySelector('h2') : null;
@@ -425,6 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    let newAccessToken = null;
     if (accessToken) {
       localStorage.setItem('spotify_access_token', accessToken);
       localStorage.setItem('spotify_token_expires_at', Date.now() + parseInt(expiresIn, 10) * 1000);
@@ -432,39 +459,38 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('spotify_refresh_token', refreshToken);
       }
       console.log('Spotify Access Token Stored from Hash.');
-      currentAccessToken = accessToken; // Set global token
-      if (spotifyAuthOverlay) spotifyAuthOverlay.style.display = 'none';
+      newAccessToken = accessToken;
       window.location.hash = '';
-      // Check if SDK is ready (Spotify object exists) and then initialize player
-      if (typeof Spotify !== 'undefined' && !spotifyPlayer) {
-        initializePlayerInternal(accessToken);
-      } else if (spotifyPlayer) {
-        console.log('Player already initialized or SDK not ready yet for new token.');
+    } else {
+      const storedToken = localStorage.getItem('spotify_access_token');
+      const tokenExpiresAt = localStorage.getItem('spotify_token_expires_at');
+      if (storedToken && tokenExpiresAt && Date.now() < parseInt(tokenExpiresAt, 10)) {
+        console.log('Found valid stored Spotify Access Token.');
+        newAccessToken = storedToken;
+      } else {
+         console.log('No valid token found in hash or storage. Displaying auth overlay.');
+         if (spotifyAuthOverlay) spotifyAuthOverlay.style.display = 'flex';
+         localStorage.removeItem('spotify_access_token');
+         localStorage.removeItem('spotify_token_expires_at');
+         localStorage.removeItem('spotify_refresh_token');
+         currentAccessToken = null;
+         if(spotifyPlayer) { spotifyPlayer.disconnect(); spotifyPlayer = null; }
+         return; // Exit if no token
       }
-      return;
     }
 
-    const storedAccessToken = localStorage.getItem('spotify_access_token');
-    const tokenExpiresAt = localStorage.getItem('spotify_token_expires_at');
+    // We have a token (either new or stored)
+    currentAccessToken = newAccessToken;
+    if (spotifyAuthOverlay) spotifyAuthOverlay.style.display = 'none';
 
-    if (storedAccessToken && tokenExpiresAt && Date.now() < parseInt(tokenExpiresAt, 10)) {
-      console.log('Found valid stored Spotify Access Token.');
-      currentAccessToken = storedAccessToken; // Set global token
-      if (spotifyAuthOverlay) spotifyAuthOverlay.style.display = 'none';
-      // Check if SDK is ready and then initialize player
-      if (typeof Spotify !== 'undefined' && !spotifyPlayer) {
-        initializePlayerInternal(storedAccessToken);
-      } else if (spotifyPlayer) {
-        console.log('Player already initialized or SDK not ready yet for stored token.');
-      }
+    if (sdkReady && !spotifyPlayer) { // If SDK is ready and player not yet initialized
+        initializePlayerInternal(currentAccessToken);
+    } else if (sdkReady && spotifyPlayer) {
+        console.log('SDK ready, player already exists. Might need to update token or reconnect if issues persist.');
+        // If player exists but token was refreshed from hash, ensure SDK gets the new token
+        // The getOAuthToken callback should handle providing the updated currentAccessToken
     } else {
-      console.log('No valid token found. Displaying auth overlay.');
-      if (spotifyAuthOverlay) spotifyAuthOverlay.style.display = 'flex';
-      localStorage.removeItem('spotify_access_token');
-      localStorage.removeItem('spotify_token_expires_at');
-      localStorage.removeItem('spotify_refresh_token');
-      currentAccessToken = null;
-      if(spotifyPlayer) { spotifyPlayer.disconnect(); spotifyPlayer = null; } // Disconnect and clear player if token invalid
+        console.log('Token ready, but SDK not yet. onSpotifyWebPlaybackSDKReady will initialize player.');
     }
   }
 
