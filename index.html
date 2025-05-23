@@ -133,7 +133,7 @@
             </div>
             <div class="time flex flex-row justify-between">
                 <div class="time-elapsed">0:23</div>
-                <div class="time-remaining">3:41</div>
+                <div class="time-total">3:41</div>
             </div>
         </div>
         
@@ -469,6 +469,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (albumTitleElement) {
       albumTitleElement.textContent = current_track.album.name;
       console.log('Updated album title');
+    }
+
+    // Update total duration
+    const timeTotalElement = document.querySelector('.now-playing .time-total') || 
+                            document.querySelector('.time-total');
+    if (timeTotalElement && duration !== undefined) {
+      const totalMinutes = Math.floor(duration / 60000);
+      const totalSeconds = Math.floor((duration % 60000) / 1000);
+      const totalTimeString = `${totalMinutes}:${totalSeconds.toString().padStart(2, '0')}`;
+      timeTotalElement.textContent = totalTimeString;
+      console.log('Updated total duration to:', totalTimeString);
     }
 
     // Update elapsed time initially
