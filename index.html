@@ -310,19 +310,19 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateNowPlayingUI(state) {
-    const { track_window: { current_track } } = state;
+    const { track_window: { current_track }, position, duration } = state;
     
     if (!current_track) return;
 
-    // Update cover image
-    const coverElement = document.querySelector('.cover');
+    // Update cover image in the now-playing section
+    const coverElement = document.querySelector('.now-playing .cover');
     if (coverElement && current_track.album.images.length > 0) {
       coverElement.style.backgroundImage = `url('${current_track.album.images[0].url}')`;
     }
 
-    // Update track title and artist
-    const trackTitleElement = document.querySelector('.track-title');
-    const artistNameElement = document.querySelector('.artist-name');
+    // Update track title and artist in the now-playing section
+    const trackTitleElement = document.querySelector('.now-playing .track-title');
+    const artistNameElement = document.querySelector('.now-playing .artist-name');
     
     if (trackTitleElement) {
       trackTitleElement.textContent = current_track.name;
@@ -331,10 +331,18 @@ document.addEventListener('DOMContentLoaded', () => {
       artistNameElement.textContent = current_track.artists.map(artist => artist.name).join(', ');
     }
 
-    // Update album name (if you have an element for it)
-    const albumElement = document.querySelector('.album-name');
-    if (albumElement) {
-      albumElement.textContent = current_track.album.name;
+    // Update album title in the now-playing section
+    const albumTitleElement = document.querySelector('.now-playing .album-title');
+    if (albumTitleElement) {
+      albumTitleElement.textContent = current_track.album.name;
+    }
+
+    // Update elapsed time
+    const timeElapsedElement = document.querySelector('.now-playing .time-elapsed');
+    if (timeElapsedElement && position !== undefined) {
+      const minutes = Math.floor(position / 60000);
+      const seconds = Math.floor((position % 60000) / 1000);
+      timeElapsedElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
     }
 
     console.log('Now playing:', current_track.name, 'by', current_track.artists[0].name);
