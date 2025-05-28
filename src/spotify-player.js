@@ -40,7 +40,7 @@ const STATIONS = [
     description: 'Hits from the seventies', 
     image: 'stations/station-70s.png',
     type: 'playlist',
-    playlistId: null // To be added when playlist is created
+    playlistId: '6Y5RFouEwOtDevkKXVST5W'
   },
   { 
     id: '80s', 
@@ -122,6 +122,9 @@ class SpotifyPlayer {
     this.lastKnownPosition = 0; // Track position for stall detection
     this.positionStallCount = 0; // Count position stalls
     this.continuousPlaybackEnabled = true; // Flag to control continuous playback
+    this.lastPlayedTrackUri = null; // Track the last played track to avoid repeats
+    this.recentlyPlayedUris = []; // Keep track of recently played tracks
+    this.currentTrackUri = null; // Track the current track URI
   }
 
   async init() {
@@ -503,6 +506,15 @@ class SpotifyPlayer {
       }
     }
 
+    // Capture current track URI if available
+    if (state && state.track_window && state.track_window.current_track) {
+      const currentUri = state.track_window.current_track.uri;
+      if (currentUri && currentUri !== this.lastPlayedTrackUri) {
+        console.log(`Now playing: ${state.track_window.current_track.name} (${currentUri})`);
+        this.lastPlayedTrackUri = currentUri;
+      }
+    }
+
     // Enhanced track ending detection
     if (state && this.isTrackAtEnd(state)) {
       this.handleTrackEnding();
@@ -521,8 +533,17 @@ class SpotifyPlayer {
     const timeRemainingMs = durationMs - positionMs;
     
     // More detailed logging
-    if (timeRemainingMs < 2000) {
+    if (timeRemainingMs < 2000 || positionMs < 1000) {
       console.log(`Track progress: ${(positionMs/1000).toFixed(1)}s / ${(durationMs/1000).toFixed(1)}s (${timeRemainingMs}ms remaining) - Paused: ${state.paused}`);
+    }
+
+    // Check if position suddenly reset to near 0 (track restarted)
+    if (this.previousState && 
+        this.previousState.position > durationMs * 0.9 && // Was near the end
+        positionMs < 1000 && // Now at the beginning
+        state.paused) { // And paused
+      console.log('Track reset detected - was at end, now at beginning and paused');
+      return !this.trackEndingProcessed;
     }
 
     // Check multiple conditions for track ending
@@ -530,6 +551,7 @@ class SpotifyPlayer {
       isPaused: state.paused,
       nearEnd: timeRemainingMs < 1000 && timeRemainingMs >= -100, // Within 1 second of end (with small negative buffer)
       atExactEnd: positionMs >= durationMs,
+      atBeginningPaused: positionMs < 1000 && state.paused && this.previousState && this.previousState.position > positionMs + 10000, // Reset detection
       notProcessed: !this.trackEndingProcessed
     };
 
@@ -539,6 +561,8 @@ class SpotifyPlayer {
       (conditions.isPaused && conditions.nearEnd) ||
       // Position is at or past duration (regardless of pause state)
       conditions.atExactEnd ||
+      // Position reset to beginning while paused
+      conditions.atBeginningPaused ||
       // Stalled at near the end (position not changing)
       (this.isPositionStalled(state) && timeRemainingMs < 2000)
     );
@@ -582,6 +606,9 @@ class SpotifyPlayer {
     
     // Reset stall detection
     this.positionStallCount = 0;
+    
+    // Ensure we stop any current playback first
+    this.player.pause().catch(err => console.log('Error pausing:', err));
     
     // Small delay to ensure the current track has fully stopped
     setTimeout(() => {
@@ -758,7 +785,6 @@ class SpotifyPlayer {
       }
 
       const randomTrack = this.selectRandomTrack(data.items);
-      console.log(`Selected track: ${randomTrack.name} by ${randomTrack.artists[0].name}`);
       
       // Mark as transitioning for smooth MediaSession handling
       this.isTransitioning = true;
@@ -774,6 +800,14 @@ class SpotifyPlayer {
       this.isTransitioning = false;
       // Reset the ending flag to allow retry
       this.trackEndingProcessed = false;
+      
+      // Show error to user
+      this.showError('Failed to play next track. Trying again...');
+      
+      // Try once more after a delay
+      setTimeout(() => {
+        this.playRandomLikedSongFromBeginning();
+      }, 2000);
     }
   }
 
@@ -807,8 +841,46 @@ class SpotifyPlayer {
   }
 
   selectRandomTrack(tracks) {
-    const randomIndex = Math.floor(Math.random() * tracks.length);
-    return tracks[randomIndex].track;
+    if (!tracks || tracks.length === 0) {
+      throw new Error('No tracks available to select from');
+    }
+
+    // If we have very few tracks, just pick randomly
+    if (tracks.length <= 3) {
+      const randomIndex = Math.floor(Math.random() * tracks.length);
+      return tracks[randomIndex].track;
+    }
+
+    // Filter out recently played tracks if possible
+    const availableTracks = tracks.filter(item => {
+      const track = item.track;
+      return track && track.uri && !this.recentlyPlayedUris.includes(track.uri);
+    });
+
+    // If all tracks have been played recently, clear the history and use all tracks
+    const tracksToChooseFrom = availableTracks.length > 0 ? availableTracks : tracks;
+    
+    let selectedTrack;
+    let attempts = 0;
+    const maxAttempts = 10;
+
+    // Try to select a different track than the last played one
+    do {
+      const randomIndex = Math.floor(Math.random() * tracksToChooseFrom.length);
+      selectedTrack = tracksToChooseFrom[randomIndex].track;
+      attempts++;
+    } while (selectedTrack.uri === this.lastPlayedTrackUri && attempts < maxAttempts && tracksToChooseFrom.length > 1);
+
+    // Update recently played tracks (keep last 5)
+    this.recentlyPlayedUris.push(selectedTrack.uri);
+    if (this.recentlyPlayedUris.length > 5) {
+      this.recentlyPlayedUris.shift();
+    }
+    this.lastPlayedTrackUri = selectedTrack.uri;
+
+    console.log(`Selected track: ${selectedTrack.name} by ${selectedTrack.artists[0].name} (avoiding ${this.recentlyPlayedUris.length - 1} recent tracks)`);
+    
+    return selectedTrack;
   }
 
   calculateRandomPosition(duration) {
@@ -817,40 +889,75 @@ class SpotifyPlayer {
     return Math.floor(Math.random() * (maxPosition - minPosition) + minPosition);
   }
 
-  async playTrack(uri) {
+  async playTrack(uri, retryCount = 0) {
     if (!this.deviceId) {
       throw new Error('No device ID available');
     }
+
+    console.log(`Attempting to play track: ${uri} (attempt ${retryCount + 1})`);
 
     // Mark as transitioning to maintain MediaSession
     const wasTransitioning = this.isTransitioning;
     this.isTransitioning = true;
 
-    // First ensure our device is active
-    await this.ensureDeviceActive();
+    try {
+      // First ensure our device is active
+      await this.ensureDeviceActive();
 
-    // Then play the track
-    const response = await this.fetchWithRetry(
-      `https://api.spotify.com/v1/me/player/play?device_id=${this.deviceId}`,
-      {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${this.accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          uris: [uri]
-        })
+      // Then play the track
+      const response = await this.fetchWithRetry(
+        `https://api.spotify.com/v1/me/player/play?device_id=${this.deviceId}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${this.accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            uris: [uri],
+            position_ms: 0 // Explicitly start from beginning
+          })
+        }
+      );
+
+      if (!response.ok && response.status !== 204) {
+        throw new Error(`Failed to play track: ${response.status}`);
       }
-    );
 
-    if (!response.ok && response.status !== 204) {
-      throw new Error(`Failed to play track: ${response.status}`);
-    }
+      // Wait a moment to ensure playback started
+      await this.delay(500);
 
-    // Restore transition state if it wasn't set before
-    if (!wasTransitioning) {
-      this.isTransitioning = false;
+      // Verify playback actually started
+      const state = await this.player.getCurrentState();
+      if (state && state.paused && state.track_window.current_track.uri === uri) {
+        console.warn('Track loaded but is paused, attempting to resume...');
+        await this.player.resume();
+        
+        // Check again after resume
+        await this.delay(300);
+        const newState = await this.player.getCurrentState();
+        if (newState && newState.paused) {
+          throw new Error('Failed to start playback - track remains paused');
+        }
+      }
+
+      console.log('Track playback started successfully');
+    } catch (error) {
+      console.error('Error playing track:', error);
+      
+      // Retry logic
+      if (retryCount < 2) {
+        console.log(`Retrying playback (attempt ${retryCount + 2})...`);
+        await this.delay(1000);
+        return this.playTrack(uri, retryCount + 1);
+      }
+      
+      throw error;
+    } finally {
+      // Restore transition state if it wasn't set before
+      if (!wasTransitioning) {
+        this.isTransitioning = false;
+      }
     }
   }
 
@@ -909,6 +1016,11 @@ class SpotifyPlayer {
     }
 
     const { track_window: { current_track }, position, duration } = state;
+
+    // Store current track URI
+    if (current_track.uri) {
+      this.currentTrackUri = current_track.uri;
+    }
 
     if (CONFIG.DEBUG_PLAYBACK) {
       console.log(`Updating UI for: ${current_track.name} (${(position/1000).toFixed(1)}/${(duration/1000).toFixed(1)}s)`);
@@ -1245,7 +1357,6 @@ class SpotifyPlayer {
       }
 
       const randomTrack = this.selectRandomTrack(availableTracks);
-      console.log(`Selected track: ${randomTrack.name} by ${randomTrack.artists[0].name}`);
       
       // Mark as transitioning for smooth MediaSession handling
       this.isTransitioning = true;
@@ -1261,6 +1372,14 @@ class SpotifyPlayer {
       this.isTransitioning = false;
       // Reset the ending flag to allow retry
       this.trackEndingProcessed = false;
+      
+      // Show error to user
+      this.showError('Failed to play next track. Trying again...');
+      
+      // Try once more after a delay
+      setTimeout(() => {
+        this.playRandomPlaylistSongFromBeginning(playlistId);
+      }, 2000);
     }
   }
 
@@ -1466,8 +1585,18 @@ class SpotifyPlayer {
         const timeRemainingMs = durationMs - positionMs;
         
         // Log current state if debug is enabled and we're near the end
-        if (CONFIG.DEBUG_PLAYBACK && timeRemainingMs < 5000) {
+        if (CONFIG.DEBUG_PLAYBACK && (timeRemainingMs < 5000 || positionMs < 1000)) {
           console.log(`[Monitor] Track: ${(positionMs/1000).toFixed(1)}/${(durationMs/1000).toFixed(1)}s, Remaining: ${(timeRemainingMs/1000).toFixed(1)}s, Paused: ${state.paused}, Processed: ${this.trackEndingProcessed}`);
+        }
+        
+        // Special case: track is paused at position 0 and wasn't processed
+        if (positionMs < 500 && state.paused && !this.trackEndingProcessed && this.previousState) {
+          // Check if we were playing before
+          if (this.previousState.position > 10000 || this.previousState.position > durationMs * 0.8) {
+            console.log('[Monitor] Detected track reset to beginning while paused - triggering next track');
+            this.handleTrackEnding();
+            return;
+          }
         }
         
         // Failsafe: if track is at the very end and hasn't been processed
