@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" class="w-screenh-screen">
+<html lang="en" class="w-screen h-screen">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Music Player</title>
+    <title>Spotify XM - Music Player</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Special+Gothic+Condensed+One&display=swap" rel="stylesheet">
@@ -11,95 +11,95 @@
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
 </head>
 <body class="w-full bg-emerald-950 m-0 p-0 text-white flex flex-col items-start justify-start h-screen min-h-screen overflow-hidden">
-    <div class="stations relative overflow-hidden py-2 flex flex-col gap-0 bg-emerald-900 rounded-br-3xl w-[calc(100%-1.5rem)] shadow-[0_0_200px_rgba(0,0,0,1)] z-2">
+    <div class="stations relative overflow-hidden py-2 flex flex-col gap-0 bg-emerald-900 rounded-br-3xl w-[calc(100%-1.5rem)] shadow-[0_0_200px_rgba(0,0,0,1)] z-20">
         <h2 class="special-gothic-condensed-one-regular text-xl text-white px-6 pt-3 flex flex-row items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 text-emerald-300">
               <path d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v15.75c0 1.035.84 1.875 1.875 1.875h.75c1.035 0 1.875-.84 1.875-1.875V4.125c0-1.036-.84-1.875-1.875-1.875h-.75ZM9.75 8.625c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-.75a1.875 1.875 0 0 1-1.875-1.875V8.625ZM3 13.125c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v6.75c0 1.035-.84 1.875-1.875 1.875h-.75A1.875 1.875 0 0 1 3 19.875v-6.75Z" />
             </svg>
             <span>YOUR STATIONS</span>
         </h2>
-        <div class="bg-edge absolute pointer-events-none bottom-0 right-0 w-full h-full bg-cover bg-bottom-right blur-2xl z-1" style="background-image: url('bg-edge.png');">
+        <div class="bg-edge absolute pointer-events-none bottom-0 right-0 w-full h-full bg-cover bg-bottom-right blur-2xl z-10" style="background-image: url('bg-edge.png');">
             
         </div>
     
         <!-- Station Carousel -->
-        <div class="carousel relative mb-1 overflow-x-auto flex w-full space-x-4 no-scrollbar px-6 py-6 gap-3 z-2" >
-
+        <div class="carousel relative mb-1 overflow-x-auto flex w-full space-x-4 no-scrollbar px-6 py-6 gap-3 z-20">
+          <!-- Stations will be rendered dynamically in the future, keeping static for now -->
           <!-- Station 1: Liked -->
-          <div class="station shrink-0 flex flex-col items-center space-y-0 w-1/3 rounded-lg">
-            <div class="cover aspect-[9/14] w-full mb-3 rounded-lg shadow-md bg-cover bg-center" style="background-image: url('stations/station-liked.png');">
+          <div class="station shrink-0 flex flex-col items-center space-y-0 w-1/3 rounded-lg cursor-pointer">
+            <div class="cover aspect-[9/14] w-full mb-3 rounded-lg shadow-md bg-cover bg-center transition-all duration-200" style="background-image: url('stations/station-liked.png');">
               <span class="sr-only">Liked</span>
             </div>
             <h2 class="text-sm text-white font-semibold mt-1 truncate w-full text-left">Liked Songs</h2>
             <h3 class="text-xs text-emerald-300 truncate w-full text-left">Your favorite tracks</h3>
           </div>
           <!-- Station 2: Oldies -->
-          <div class="station shrink-0 flex flex-col items-center space-y-0 w-1/3 rounded-lg">
-            <div class="cover aspect-[9/14] w-full mb-3 rounded-lg shadow-md bg-cover bg-center" style="background-image: url('stations/station-oldies.png');">
+          <div class="station shrink-0 flex flex-col items-center space-y-0 w-1/3 rounded-lg cursor-pointer">
+            <div class="cover aspect-[9/14] w-full mb-3 rounded-lg shadow-md bg-cover bg-center transition-all duration-200" style="background-image: url('stations/station-oldies.png');">
               <span class="sr-only">Oldies</span>
             </div>
             <h2 class="text-sm text-white font-semibold mt-1 truncate w-full text-left">Golden Oldies</h2>
             <h3 class="text-xs text-emerald-300 truncate w-full text-left">Classics from the 50s & 60s</h3>
           </div>
           <!-- Station 3: 70's -->
-          <div class="station shrink-0 flex flex-col items-center space-y-0 w-1/3 rounded-lg">
-            <div class="cover aspect-[9/14] w-full mb-3 rounded-lg shadow-md bg-cover bg-center" style="background-image: url('stations/station-70s.png');">
+          <div class="station shrink-0 flex flex-col items-center space-y-0 w-1/3 rounded-lg cursor-pointer">
+            <div class="cover aspect-[9/14] w-full mb-3 rounded-lg shadow-md bg-cover bg-center transition-all duration-200" style="background-image: url('stations/station-70s.png');">
               <span class="sr-only">70's</span>
             </div>
             <h2 class="text-sm text-white font-semibold mt-1 truncate w-full text-left">Groovy 70s</h2>
             <h3 class="text-xs text-emerald-300 truncate w-full text-left">Hits from the seventies</h3>
           </div>
           <!-- Station 4: 80's -->
-          <div class="station shrink-0 flex flex-col items-center space-y-0 w-1/3 rounded-lg">
-            <div class="cover aspect-[9/14] w-full mb-3 rounded-lg shadow-md bg-cover bg-center" style="background-image: url('stations/station-80s.png');">
+          <div class="station shrink-0 flex flex-col items-center space-y-0 w-1/3 rounded-lg cursor-pointer">
+            <div class="cover aspect-[9/14] w-full mb-3 rounded-lg shadow-md bg-cover bg-center transition-all duration-200" style="background-image: url('stations/station-80s.png');">
               <span class="sr-only">80's</span>
             </div>
             <h2 class="text-sm text-white font-semibold mt-1 truncate w-full text-left">Awesome 80s</h2>
             <h3 class="text-xs text-emerald-300 truncate w-full text-left">The unforgettable eighties</h3>
           </div>
           <!-- Station 5: 90's -->
-          <div class="station shrink-0 flex flex-col items-center space-y-0 w-1/3 rounded-lg">
-            <div class="cover aspect-[9/14] w-full mb-3 rounded-lg shadow-md bg-cover bg-center" style="background-image: url('stations/station-90s.png');">
+          <div class="station shrink-0 flex flex-col items-center space-y-0 w-1/3 rounded-lg cursor-pointer">
+            <div class="cover aspect-[9/14] w-full mb-3 rounded-lg shadow-md bg-cover bg-center transition-all duration-200" style="background-image: url('stations/station-90s.png');">
               <span class="sr-only">90's</span>
             </div>
             <h2 class="text-sm text-white font-semibold mt-1 truncate w-full text-left">90s Throwback</h2>
             <h3 class="text-xs text-emerald-300 truncate w-full text-left">Biggest hits of the nineties</h3>
           </div>
           <!-- Station 6: 2k -->
-          <div class="station shrink-0 flex flex-col items-center space-y-0 w-1/3 rounded-lg">
-            <div class="cover aspect-[9/14] w-full mb-3 rounded-lg shadow-md bg-cover bg-center" style="background-image: url('./placeholder.jpg');">
+          <div class="station shrink-0 flex flex-col items-center space-y-0 w-1/3 rounded-lg cursor-pointer">
+            <div class="cover aspect-[9/14] w-full mb-3 rounded-lg shadow-md bg-cover bg-center transition-all duration-200" style="background-image: url('./placeholder.jpg');">
               <span class="sr-only">2k</span>
             </div>
             <h2 class="text-sm text-white font-semibold mt-1 truncate w-full text-left">Y2K Hits</h2>
             <h3 class="text-xs text-emerald-300 truncate w-full text-left">Pop from the 2000s</h3>
           </div>
           <!-- Station 7: New Music -->
-          <div class="station shrink-0 flex flex-col items-center space-y-0 w-1/3 rounded-lg">
-            <div class="cover aspect-[9/14] w-full mb-3 rounded-lg shadow-md bg-cover bg-center" style="background-image: url('./placeholder.jpg');">
+          <div class="station shrink-0 flex flex-col items-center space-y-0 w-1/3 rounded-lg cursor-pointer">
+            <div class="cover aspect-[9/14] w-full mb-3 rounded-lg shadow-md bg-cover bg-center transition-all duration-200" style="background-image: url('./placeholder.jpg');">
               <span class="sr-only">New Music</span>
             </div>
             <h2 class="text-sm text-white font-semibold mt-1 truncate w-full text-left">Fresh Finds</h2>
             <h3 class="text-xs text-emerald-300 truncate w-full text-left">Latest music releases</h3>
           </div>
           <!-- Station 8: Party Bangers -->
-          <div class="station shrink-0 flex flex-col items-center space-y-0 w-1/3 rounded-lg">
-            <div class="cover aspect-[9/14] w-full mb-3 rounded-lg shadow-md bg-cover bg-center" style="background-image: url('./placeholder.jpg');">
+          <div class="station shrink-0 flex flex-col items-center space-y-0 w-1/3 rounded-lg cursor-pointer">
+            <div class="cover aspect-[9/14] w-full mb-3 rounded-lg shadow-md bg-cover bg-center transition-all duration-200" style="background-image: url('./placeholder.jpg');">
               <span class="sr-only">Party Bangers</span>
             </div>
             <h2 class="text-sm text-white font-semibold mt-1 truncate w-full text-left">Party Bangers</h2>
             <h3 class="text-xs text-emerald-300 truncate w-full text-left">High-energy anthems</h3>
           </div>
           <!-- Station 9: High School Jams -->
-          <div class="station shrink-0 flex flex-col items-center space-y-0 w-1/3 rounded-lg">
-            <div class="cover aspect-[9/14] w-full mb-3 rounded-lg shadow-md bg-cover bg-center" style="background-image: url('./placeholder.jpg');">
+          <div class="station shrink-0 flex flex-col items-center space-y-0 w-1/3 rounded-lg cursor-pointer">
+            <div class="cover aspect-[9/14] w-full mb-3 rounded-lg shadow-md bg-cover bg-center transition-all duration-200" style="background-image: url('./placeholder.jpg');">
               <span class="sr-only">High School Jams</span>
             </div>
             <h2 class="text-sm text-white font-semibold mt-1 truncate w-full text-left">HS Rewind</h2>
             <h3 class="text-xs text-emerald-300 truncate w-full text-left">Your high school soundtrack</h3>
           </div>
           <!-- Station 10: Talk -->
-          <div class="station shrink-0 flex flex-col items-center space-y-0 w-1/3 rounded-lg">
-            <div class="cover aspect-[9/14] w-full mb-3 rounded-lg shadow-md bg-cover bg-center" style="background-image: url('./placeholder.jpg');">
+          <div class="station shrink-0 flex flex-col items-center space-y-0 w-1/3 rounded-lg cursor-pointer">
+            <div class="cover aspect-[9/14] w-full mb-3 rounded-lg shadow-md bg-cover bg-center transition-all duration-200" style="background-image: url('./placeholder.jpg');">
               <span class="sr-only">Talk</span>
             </div>
             <h2 class="text-sm text-white font-semibold mt-1 truncate w-full text-left">Talk & Podcasts</h2>
@@ -109,625 +109,50 @@
         
     </div>
 
-    <div class="now-playing-container w-full relative z-2 mt-2">
+    <div class="now-playing-container w-full relative z-20 mt-2">
         <h2 class="special-gothic-condensed-one-regular text-xl text-white px-6 pt-4 flex flex-row items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 text-emerald-300">
                 <path fill-rule="evenodd" d="M19.952 1.651a.75.75 0 0 1 .298.599V16.303a3 3 0 0 1-2.176 2.884l-1.32.377a2.553 2.553 0 1 1-1.403-4.909l2.311-.66a1.5 1.5 0 0 0 1.088-1.442V6.994l-9 2.572v9.737a3 3 0 0 1-2.176 2.884l-1.32.377a2.553 2.553 0 1 1-1.402-4.909l2.31-.66a1.5 1.5 0 0 0 1.088-1.442V5.25a.75.75 0 0 1 .544-.721l10.5-3a.75.75 0 0 1 .658.122Z" clip-rule="evenodd" />
-              </svg>
-              
-
+            </svg>
             <span>NOW PLAYING</span>
         </h2>
 
-    <div class="now-playing w-full p-6 grid grid-cols-2 gap-6">
-        <div class="aspect-square cover w-full h-full bg-cover bg-center" style="background-image: url('cover.png');">
-        </div>
-        <div class="track-meta w-full flex flex-col gap-0 justify-between">
-            <div class="info">
-            <h2 class="track flex flex-col gap-2r text-xl font-semibold">
-                <span class="artist-name uppercase text-base text-emerald-300">Lil Nas X</span>
-                <span class="track-title text-2xl line-clamp-2">Industry Baby (or a Longer Title Here)</span>
-               
-            </h2>
-            <p class="album-title text-emerald-300 opacity-50">Montero</p>
+        <div class="now-playing w-full p-6 grid grid-cols-2 gap-6">
+            <div class="aspect-square cover w-full h-full bg-cover bg-center rounded-lg shadow-lg transition-all duration-300" style="background-image: url('cover.png');">
             </div>
-            <div class="time flex flex-row justify-between">
-                <div class="time-elapsed">0:23</div>
-                <div class="time-total">3:41</div>
+            <div class="track-meta w-full flex flex-col gap-0 justify-between">
+                <div class="info">
+                    <h2 class="track flex flex-col gap-2 text-xl font-semibold">
+                        <span class="artist-name uppercase text-base text-emerald-300">Artist Name</span>
+                        <span class="track-title text-2xl line-clamp-2">Track Title</span>
+                    </h2>
+                    <p class="album-title text-emerald-300 opacity-50">Album Title</p>
+                </div>
+                <div class="time flex flex-row justify-between">
+                    <div class="time-elapsed">0:00</div>
+                    <div class="time-total">0:00</div>
+                </div>
             </div>
         </div>
-        
-        
-    </div>
     </div>
 
-
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const stations = document.querySelectorAll('.station');
-  const activeRingClasses = ['ring-4', 'ring-pink-300', 'ring-offset-6', 'ring-offset-emerald-900'];
-  const connectSpotifyBtn = document.getElementById('connect-spotify-btn');
-  const spotifyAuthOverlay = document.getElementById('spotify-auth-overlay');
-
-  // Spotify Player variables
-  let player = null;
-  let deviceId = null;
-  let currentAccessToken = null;
-  let timeUpdateInterval = null;
-  let previousState = null; // Track previous state to detect track endings
-  let trackEndingProcessed = false; // Prevent multiple triggers for the same track ending
-
-  function setActiveStation(targetStation) {
-    if (!targetStation) return;
-    stations.forEach(station => {
-      const imageDiv = station.children[0];
-      if (imageDiv && imageDiv.classList) {
-        imageDiv.classList.remove(...activeRingClasses);
-      }
-    });
-    const targetImageDiv = targetStation.children[0];
-    if (targetImageDiv && targetImageDiv.classList) {
-      targetImageDiv.classList.add(...activeRingClasses);
-    }
-  }
-
-  if (stations.length > 0) {
-    setActiveStation(stations[0]);
-  }
-
-  stations.forEach(station => {
-    station.addEventListener('click', () => {
-      setActiveStation(station);
-      station.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-    });
-  });
-
-  function parseHashParams() {
-    const hash = window.location.hash.substring(1);
-    const params = new URLSearchParams(hash);
-    return {
-      accessToken: params.get('access_token'),
-      refreshToken: params.get('refresh_token'),
-      expiresIn: params.get('expires_in'),
-      error: params.get('error'),
-    };
-  }
-
-  async function initializeSpotifyPlayer(accessToken) {
-    console.log('Initializing Spotify Player...');
-    currentAccessToken = accessToken;
-    
-    // Wait for Spotify Web Playbook SDK to load
-    window.onSpotifyWebPlaybackSDKReady = () => {
-      const token = accessToken;
-      player = new Spotify.Player({
-        name: 'Spotify XM Player',
-        getOAuthToken: cb => { cb(token); },
-        volume: 0.5
-      });
-
-      // Error handling
-      player.addListener('initialization_error', ({ message }) => {
-        console.error('Failed to initialize:', message);
-      });
-
-      player.addListener('authentication_error', ({ message }) => {
-        console.error('Failed to authenticate:', message);
-      });
-
-      player.addListener('account_error', ({ message }) => {
-        console.error('Failed to validate Spotify account:', message);
-      });
-
-      player.addListener('playback_error', ({ message }) => {
-        console.error('Failed to perform playback:', message);
-      });
-
-      // Playback status updates
-      player.addListener('player_state_changed', (state) => {
-        if (!state) {
-          return;
-        }
-        console.log('Player state changed:', state);
-        
-        // Check if track has ended by comparing with previous state
-        if (previousState && state.position !== undefined && state.duration !== undefined && 
-            previousState.position !== undefined && previousState.duration !== undefined) {
-          
-          const currentProgress = (state.position / state.duration) * 100;
-          const previousProgress = (previousState.position / previousState.duration) * 100;
-          
-          console.log('Track ending detection - Previous progress:', previousProgress.toFixed(1) + '%, Current progress:', currentProgress.toFixed(1) + '%, Paused:', state.paused, 'Duration diff:', Math.abs(state.duration - previousState.duration));
-          
-          // Track ended if:
-          // 1. Previous position was near the end (>85%)
-          // 2. Current position reset to near 0 (<10%)
-          // 3. It's the same track (same duration, roughly)
-          // 4. We haven't already processed this track ending
-          if (previousProgress > 85 && currentProgress < 10 && 
-              Math.abs(state.duration - previousState.duration) < 5000 && !trackEndingProcessed) {
-            console.log('Track ended naturally - previous progress:', previousProgress.toFixed(1) + '%, current progress:', currentProgress.toFixed(1) + '%, playing next random song from beginning');
-            trackEndingProcessed = true; // Prevent multiple triggers
-            setTimeout(() => {
-              playRandomLikedSongFromBeginning(currentAccessToken);
-              // Reset the flag after a delay to allow for future track endings
-              setTimeout(() => { trackEndingProcessed = false; }, 5000);
-            }, 1000); // Small delay to ensure the track has fully ended
-          }
-        } else {
-          console.log('Track ending detection - Missing data. Previous state:', !!previousState, 'Current position defined:', state.position !== undefined, 'Current duration defined:', state.duration !== undefined);
-        }
-        
-        // Store current state as previous for next comparison
-        previousState = { ...state };
-        
-        updateNowPlayingUI(state);
-        startTimeUpdates(state);
-      });
-
-      // Ready
-      player.addListener('ready', ({ device_id }) => {
-        console.log('Ready with Device ID', device_id);
-        deviceId = device_id;
-        
-        // Fetch liked songs and start playback
-        fetchAndPlayRandomLikedSong(accessToken);
-      });
-
-      // Not Ready
-      player.addListener('not_ready', ({ device_id }) => {
-        console.log('Device ID has gone offline', device_id);
-        if (timeUpdateInterval) {
-          clearInterval(timeUpdateInterval);
-        }
-      });
-
-      // Connect to the player!
-      player.connect();
-      
-      // Set up MediaSession handlers for Bluetooth controls
-      setupMediaSessionHandlers();
-    };
-
-    // Trigger the callback if SDK is already loaded
-    if (window.Spotify) {
-      window.onSpotifyWebPlaybackSDKReady();
-    }
-  }
-
-  function startTimeUpdates(initialState) {
-    // Clear any existing interval
-    if (timeUpdateInterval) {
-      clearInterval(timeUpdateInterval);
-    }
-
-    // Start a new interval to update time every second
-    timeUpdateInterval = setInterval(async () => {
-      if (player) {
-        try {
-          const state = await player.getCurrentState();
-          if (state && !state.paused) {
-            updateElapsedTime(state.position, state.duration);
-          }
-        } catch (error) {
-          console.error('Error getting current state:', error);
-        }
-      }
-    }, 1000);
-  }
-
-  function updateElapsedTime(position, duration) {
-    // Try multiple selectors to find the time elapsed element
-    const timeElapsedElement = document.querySelector('.time-elapsed') || 
-                              document.querySelector('.now-playing .time-elapsed') ||
-                              document.querySelector('.now-playing-container .time-elapsed');
-    
-    console.log('Updating elapsed time, position:', position, 'duration:', duration, 'element found:', !!timeElapsedElement);
-    
-    if (timeElapsedElement && position !== undefined) {
-      const minutes = Math.floor(position / 60000);
-      const seconds = Math.floor((position % 60000) / 1000);
-      const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-      timeElapsedElement.textContent = timeString;
-      console.log('Updated time to:', timeString);
-    }
-
-    // Update progress bar width
-    const progressElement = document.querySelector('.progress');
-    if (progressElement && position !== undefined && duration !== undefined && duration > 0) {
-      const progressPercentage = (position / duration) * 100;
-      progressElement.style.width = `${progressPercentage}%`;
-      console.log('Updated progress to:', `${progressPercentage.toFixed(1)}%`);
-    }
-  }
-
-  async function fetchAndPlayRandomLikedSong(accessToken) {
-    try {
-      console.log('Fetching liked songs...');
-      
-      // Get user's liked songs
-      const response = await fetch('https://api.spotify.com/v1/me/tracks?limit=50', {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch liked songs: ${response.status}`);
-      }
-
-      const data = await response.json();
-      
-      if (data.items.length === 0) {
-        console.log('No liked songs found');
-        return;
-      }
-
-      // Pick a random track
-      const randomIndex = Math.floor(Math.random() * data.items.length);
-      const randomTrack = data.items[randomIndex].track;
-      
-      console.log('Playing random track:', randomTrack.name, 'by', randomTrack.artists[0].name);
-
-      // Transfer playback to our player and start playing the track
-      await fetch(`https://api.spotify.com/v1/me/player`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          device_ids: [deviceId],
-          play: true
-        })
-      });
-
-      // Start playing the specific track
-      await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          uris: [randomTrack.uri]
-        })
-      });
-
-    } catch (error) {
-      console.error('Error fetching/playing liked songs:', error);
-    }
-  }
-
-  async function playRandomLikedSongFromBeginning(accessToken) {
-    try {
-      console.log('Fetching liked songs for next track (from beginning)...');
-      
-      // Get user's liked songs
-      const response = await fetch('https://api.spotify.com/v1/me/tracks?limit=50', {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch liked songs: ${response.status}`);
-      }
-
-      const data = await response.json();
-      
-      if (data.items.length === 0) {
-        console.log('No liked songs found');
-        return;
-      }
-
-      // Pick a random track
-      const randomIndex = Math.floor(Math.random() * data.items.length);
-      const randomTrack = data.items[randomIndex].track;
-      
-      console.log('Playing next random track from beginning:', randomTrack.name, 'by', randomTrack.artists[0].name);
-
-      // Start playing the specific track from the beginning
-      await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          uris: [randomTrack.uri]
-        })
-      });
-
-      console.log('Successfully started next track from beginning');
-
-    } catch (error) {
-      console.error('Error playing next random song from beginning:', error);
-    }
-  }
-
-  async function playRandomLikedSongAtRandomPosition(accessToken) {
-    try {
-      console.log('Fetching liked songs for random playback...');
-      
-      // Get user's liked songs
-      const response = await fetch('https://api.spotify.com/v1/me/tracks?limit=50', {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch liked songs: ${response.status}`);
-      }
-
-      const data = await response.json();
-      
-      if (data.items.length === 0) {
-        console.log('No liked songs found');
-        return;
-      }
-
-      // Pick a random track
-      const randomIndex = Math.floor(Math.random() * data.items.length);
-      const randomTrack = data.items[randomIndex].track;
-      
-      console.log('Playing random track at random position:', randomTrack.name, 'by', randomTrack.artists[0].name);
-      console.log('Track duration:', randomTrack.duration_ms, 'ms');
-
-      // Start playing the specific track first
-      await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          uris: [randomTrack.uri]
-        })
-      });
-
-      // Calculate random position between 20% and 50% of the track
-      const trackDuration = randomTrack.duration_ms;
-      const minPosition = trackDuration * 0.2; // 20%
-      const maxPosition = trackDuration * 0.5; // 50%
-      const randomPosition = Math.floor(Math.random() * (maxPosition - minPosition) + minPosition);
-      
-      console.log('Seeking to position:', randomPosition, 'ms (', Math.round((randomPosition / trackDuration) * 100), '% through track)');
-
-      // Wait a moment for the track to start, then seek to random position
-      setTimeout(async () => {
-        try {
-          await fetch(`https://api.spotify.com/v1/me/player/seek?position_ms=${randomPosition}`, {
-            method: 'PUT',
-            headers: {
-              'Authorization': `Bearer ${accessToken}`,
-              'Content-Type': 'application/json'
-            }
-          });
-          console.log('Successfully seeked to random position');
-        } catch (seekError) {
-          console.error('Error seeking to position:', seekError);
-        }
-      }, 500); // Wait 500ms for track to start before seeking
-
-    } catch (error) {
-      console.error('Error playing random song at random position:', error);
-    }
-  }
-
-  function updateNowPlayingUI(state) {
-    const { track_window: { current_track }, position, duration } = state;
-    
-    if (!current_track) return;
-
-    console.log('Updating Now Playing UI for:', current_track.name);
-
-    // Update cover image in the now-playing section
-    const coverElement = document.querySelector('.now-playing .cover') || 
-                         document.querySelector('.cover');
-    if (coverElement && current_track.album.images.length > 0) {
-      coverElement.style.backgroundImage = `url('${current_track.album.images[0].url}')`;
-      console.log('Updated cover image');
-    }
-
-    // Update track title and artist in the now-playing section
-    const trackTitleElement = document.querySelector('.now-playing .track-title') || 
-                             document.querySelector('.track-title');
-    const artistNameElement = document.querySelector('.now-playing .artist-name') || 
-                             document.querySelector('.artist-name');
-    
-    if (trackTitleElement) {
-      trackTitleElement.textContent = current_track.name;
-      console.log('Updated track title');
-    }
-    if (artistNameElement) {
-      artistNameElement.textContent = current_track.artists.map(artist => artist.name).join(', ');
-      console.log('Updated artist name');
-    }
-
-    // Update album title in the now-playing section
-    const albumTitleElement = document.querySelector('.now-playing .album-title') || 
-                             document.querySelector('.album-title');
-    if (albumTitleElement) {
-      albumTitleElement.textContent = current_track.album.name;
-      console.log('Updated album title');
-    }
-
-    // Update total duration
-    const timeTotalElement = document.querySelector('.now-playing .time-total') || 
-                            document.querySelector('.time-total');
-    if (timeTotalElement && duration !== undefined) {
-      const totalMinutes = Math.floor(duration / 60000);
-      const totalSeconds = Math.floor((duration % 60000) / 1000);
-      const totalTimeString = `${totalMinutes}:${totalSeconds.toString().padStart(2, '0')}`;
-      timeTotalElement.textContent = totalTimeString;
-      console.log('Updated total duration to:', totalTimeString);
-    }
-
-    // Update elapsed time initially
-    updateElapsedTime(position, duration);
-
-    // Update MediaSession metadata for Bluetooth devices and system controls
-    updateMediaSession(current_track);
-
-    console.log('Now playing:', current_track.name, 'by', current_track.artists[0].name);
-  }
-
-  function updateMediaSession(track) {
-    if ('mediaSession' in navigator) {
-      console.log('Updating MediaSession metadata for Bluetooth/system controls');
-      
-      // Set metadata that appears on lock screen, notifications, car displays, etc.
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: track.name,
-        artist: track.artists.map(artist => artist.name).join(', '),
-        album: track.album.name,
-        artwork: track.album.images.map(image => ({
-          src: image.url,
-          sizes: `${image.width}x${image.height}`,
-          type: 'image/jpeg'
-        }))
-      });
-
-      console.log('MediaSession metadata updated:', track.name);
-    }
-  }
-
-  function setupMediaSessionHandlers() {
-    if ('mediaSession' in navigator) {
-      console.log('Setting up MediaSession handlers for Bluetooth/system controls');
-
-      // Handle next track from Bluetooth devices, headphones, car systems, etc.
-      navigator.mediaSession.setActionHandler('nexttrack', () => {
-        console.log('Next track triggered from Bluetooth/system control');
-        if (currentAccessToken && deviceId) {
-          playRandomLikedSongAtRandomPosition(currentAccessToken);
-        }
-      });
-
-      // Handle previous track (we'll also make it go to random position for consistency)
-      navigator.mediaSession.setActionHandler('previoustrack', () => {
-        console.log('Previous track triggered from Bluetooth/system control');
-        if (currentAccessToken && deviceId) {
-          playRandomLikedSongAtRandomPosition(currentAccessToken);
-        }
-      });
-
-      // Handle play/pause from external controls
-      navigator.mediaSession.setActionHandler('play', async () => {
-        console.log('Play triggered from Bluetooth/system control');
-        if (player) {
-          await player.resume();
-        }
-      });
-
-      navigator.mediaSession.setActionHandler('pause', async () => {
-        console.log('Pause triggered from Bluetooth/system control');
-        if (player) {
-          await player.pause();
-        }
-      });
-
-      console.log('MediaSession handlers configured');
-    } else {
-      console.log('MediaSession API not supported in this browser');
-    }
-  }
-
-  function handleAuth() {
-    const { accessToken, refreshToken, expiresIn, error } = parseHashParams();
-    const authOverlayTitle = spotifyAuthOverlay ? spotifyAuthOverlay.querySelector('h2') : null;
-    const authOverlayButton = spotifyAuthOverlay ? spotifyAuthOverlay.querySelector('button') : null;
-    const authOverlayMessage = spotifyAuthOverlay ? spotifyAuthOverlay.querySelector('p') : null;
-
-    if (error && authOverlayTitle && authOverlayButton && authOverlayMessage) {
-      console.error('Spotify Auth Error:', error);
-      authOverlayTitle.textContent = 'Authentication Failed';
-      authOverlayButton.textContent = 'TRY AGAIN';
-      authOverlayMessage.textContent = `Error: ${error}. Please ensure you have granted permissions and try again.`;
-      window.location.hash = '';
-      if (spotifyAuthOverlay) spotifyAuthOverlay.style.display = 'flex'; 
-      return;
-    }
-
-    if (accessToken) {
-      localStorage.setItem('spotify_access_token', accessToken);
-      localStorage.setItem('spotify_token_expires_at', Date.now() + parseInt(expiresIn, 10) * 1000);
-      if (refreshToken) {
-        localStorage.setItem('spotify_refresh_token', refreshToken);
-      }
-      console.log('Spotify Access Token Stored.');
-      if (spotifyAuthOverlay) spotifyAuthOverlay.style.display = 'none';
-      window.location.hash = '';
-      
-      // Initialize Spotify Player
-      initializeSpotifyPlayer(accessToken);
-      return;
-    }
-
-    // Check for existing valid token if no new token/error in hash
-    const storedAccessToken = localStorage.getItem('spotify_access_token');
-    const tokenExpiresAt = localStorage.getItem('spotify_token_expires_at');
-
-    if (storedAccessToken && tokenExpiresAt && Date.now() < parseInt(tokenExpiresAt, 10)) {
-      console.log('Found valid stored Spotify Access Token.');
-      if (spotifyAuthOverlay) spotifyAuthOverlay.style.display = 'none';
-      
-      // Initialize Spotify Player with stored token
-      initializeSpotifyPlayer(storedAccessToken);
-    } else {
-      console.log('No valid token found. Displaying auth overlay.');
-      if (spotifyAuthOverlay) spotifyAuthOverlay.style.display = 'flex';
-      localStorage.removeItem('spotify_access_token');
-      localStorage.removeItem('spotify_token_expires_at');
-      localStorage.removeItem('spotify_refresh_token');
-    }
-  }
-
-  if (connectSpotifyBtn) {
-    connectSpotifyBtn.addEventListener('click', () => {
-      window.location.href = '/.netlify/functions/spotify-auth-login';
-    });
-  }
-
-  // Add click handler for now-playing area to play random song at random position
-  const nowPlayingArea = document.querySelector('.now-playing') || 
-                         document.querySelector('.now-playing-container');
-  if (nowPlayingArea) {
-    nowPlayingArea.addEventListener('click', () => {
-      if (currentAccessToken && deviceId) {
-        console.log('Now playing area clicked - playing random song at random position');
-        playRandomLikedSongAtRandomPosition(currentAccessToken);
-      } else {
-        console.log('Cannot play random song - no access token or device ID available');
-      }
-    });
-    // Add cursor pointer to indicate it's clickable
-    nowPlayingArea.style.cursor = 'pointer';
-  }
-
-  // Handle authentication on page load
-  handleAuth();
-
-});
-</script>
-
-<!-- Global Playback Scrubber -->
-<div class="fixed bottom-0 top-0 left-0 w-full pointer-events-none z-1">
-  <div class="progress h-full bg-emerald-800 transition-all duration-200 border-r-2 border-emerald-300" style="width: 0%;"></div>
-</div>
-
-<!-- Spotify Auth Overlay -->
-<div id="spotify-auth-overlay" class="fixed inset-0 bg-emerald-950 bg-opacity-90 flex flex-col items-center justify-center z-50">
-  <h2 class="special-gothic-condensed-one-regular text-4xl text-white mb-8">Connect to Spotify</h2>
-  <button id="connect-spotify-btn" class="special-gothic-condensed-one-regular bg-green-500 hover:bg-green-400 text-white text-2xl py-4 px-8 rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-green-300 focus:ring-opacity-50 transition duration-150 ease-in-out">
-    TAP TO CONNECT SPOTIFY
-  </button>
-  <p class="text-emerald-300 text-sm mt-6 max-w-xs text-center">
-    This app requires access to your Spotify account to play music and manage playback.
-  </p>
-</div>
+    <!-- Global Playback Scrubber -->
+    <div class="fixed bottom-0 top-0 left-0 w-full pointer-events-none z-10">
+        <div class="progress h-full bg-emerald-800 transition-all duration-200 border-r-2 border-emerald-300" style="width: 0%;"></div>
+    </div>
+
+    <!-- Spotify Auth Overlay -->
+    <div id="spotify-auth-overlay" class="fixed inset-0 bg-emerald-950 bg-opacity-95 flex flex-col items-center justify-center z-50" style="display: none;">
+        <h2 class="special-gothic-condensed-one-regular text-4xl text-white mb-8">Connect to Spotify</h2>
+        <button id="connect-spotify-btn" class="special-gothic-condensed-one-regular bg-green-500 hover:bg-green-400 text-white text-2xl py-4 px-8 rounded-full shadow-lg focus:outline-none focus:ring-4 focus:ring-green-300 focus:ring-opacity-50 transition duration-150 ease-in-out transform hover:scale-105">
+            TAP TO CONNECT SPOTIFY
+        </button>
+        <p class="text-emerald-300 text-sm mt-6 max-w-xs text-center">
+            This app requires access to your Spotify account to play music and manage playback.
+        </p>
+    </div>
+
+    <!-- Load the refactored JavaScript -->
+    <script src="./src/spotify-player.js"></script>
 </body>
 </html> 
