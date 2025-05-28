@@ -200,6 +200,12 @@ class SpotifyPlayer {
       // Update current station
       this.currentStation = STATIONS[index].id;
       
+      // Update cover image for playlist-based stations
+      const stationData = STATIONS[index];
+      if (stationData.type === 'playlist' && stationData.playlistId) {
+        this.updateStationCoverImage(index, stationData.playlistId);
+      }
+      
       // Play from the selected station
       this.playFromCurrentStation();
     }
@@ -525,6 +531,8 @@ class SpotifyPlayer {
 
   async onPlayerReady() {
     this.setupMediaSessionHandlers();
+    // Preload playlist cover images
+    await this.preloadStationCoverImages();
     await this.playFromCurrentStation();
   }
 
@@ -1033,6 +1041,136 @@ class SpotifyPlayer {
     } catch (error) {
       console.error('Error playing random playlist song from beginning:', error);
     }
+  }
+
+  async fetchPlaylistMetadata(playlistId, forceRefresh = false) {
+    // Check cache first
+    const cacheKey = `playlist_meta_${playlistId}`;
+    if (!forceRefresh && this.playlistCache[cacheKey] && this.playlistCache[cacheKey].expiresAt > Date.now()) {
+      return this.playlistCache[cacheKey].data;
+    }
+
+    try {
+      console.log(`Fetching playlist metadata for playlist: ${playlistId}`);
+      
+      const response = await this.fetchWithRetry(
+        `https://api.spotify.com/v1/playlists/${playlistId}?fields=name,description,images,tracks.total`,
+        {
+          headers: {
+            'Authorization': `Bearer ${this.accessToken}`
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch playlist metadata: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Cache the results for 30 minutes (longer than tracks since metadata changes less frequently)
+      this.playlistCache[cacheKey] = {
+        data: data,
+        expiresAt: Date.now() + 1800000 // 30 minutes
+      };
+      
+      return data;
+    } catch (error) {
+      console.error('Error fetching playlist metadata:', error);
+      // Don't show error to user for metadata failures, just continue
+      return null;
+    }
+  }
+
+  async updateStationCoverImage(stationIndex, playlistId) {
+    try {
+      const stations = document.querySelectorAll('.station');
+      const station = stations[stationIndex];
+      if (!station) return;
+
+      const coverElement = station.querySelector('.cover');
+      if (!coverElement) return;
+
+      // Add loading state
+      coverElement.style.opacity = '0.7';
+      coverElement.style.filter = 'blur(1px)';
+
+      // Get playlist metadata
+      const metadata = await this.fetchPlaylistMetadata(playlistId);
+      if (!metadata || !metadata.images || metadata.images.length === 0) {
+        console.log('No cover image found for playlist:', playlistId);
+        // Remove loading state
+        coverElement.style.opacity = '';
+        coverElement.style.filter = '';
+        return;
+      }
+
+      // Use the largest available image (first one is usually largest)
+      const imageUrl = metadata.images[0].url;
+      
+      // Update the background image with error handling
+      const img = new Image();
+      img.onload = () => {
+        coverElement.style.backgroundImage = `url('${imageUrl}')`;
+        // Remove loading state with smooth transition
+        coverElement.style.transition = 'opacity 0.3s ease, filter 0.3s ease';
+        coverElement.style.opacity = '';
+        coverElement.style.filter = '';
+        console.log('Updated station cover image from playlist:', metadata.name);
+        
+        // Remove transition after animation completes
+        setTimeout(() => {
+          coverElement.style.transition = '';
+        }, 300);
+      };
+      img.onerror = () => {
+        console.log('Failed to load playlist cover image, keeping original');
+        // Remove loading state
+        coverElement.style.opacity = '';
+        coverElement.style.filter = '';
+      };
+      img.src = imageUrl;
+
+    } catch (error) {
+      console.error('Error updating station cover image:', error);
+      // Remove loading state on error
+      const stations = document.querySelectorAll('.station');
+      const station = stations[stationIndex];
+      if (station) {
+        const coverElement = station.querySelector('.cover');
+        if (coverElement) {
+          coverElement.style.opacity = '';
+          coverElement.style.filter = '';
+        }
+      }
+    }
+  }
+
+  async preloadStationCoverImages() {
+    console.log('Preloading station cover images...');
+    
+    // Find all playlist-based stations and load their cover images
+    const playlistStations = STATIONS.filter(station => 
+      station.type === 'playlist' && station.playlistId
+    );
+
+    // Load cover images in parallel (but don't wait for all to complete)
+    const imagePromises = playlistStations.map(async (station, stationIndex) => {
+      try {
+        // Find the actual index in the STATIONS array
+        const actualIndex = STATIONS.findIndex(s => s.id === station.id);
+        if (actualIndex !== -1) {
+          await this.updateStationCoverImage(actualIndex, station.playlistId);
+        }
+      } catch (error) {
+        console.log(`Failed to load cover image for station ${station.name}:`, error);
+      }
+    });
+
+    // Don't await all promises - let them load in background
+    Promise.allSettled(imagePromises).then(() => {
+      console.log('Finished preloading station cover images');
+    });
   }
 }
 

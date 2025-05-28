@@ -12,6 +12,7 @@ A modern web-based music player that mimics XM radio functionality using the Spo
 - 🔐 **Secure authentication** - OAuth 2.0 flow with token refresh support
 - 📱 **Responsive design** - Works on desktop and mobile devices
 - 🎯 **Playlist-based stations** - Support for Spotify playlist integration
+- 🖼️ **Dynamic cover art** - Automatically fetches and displays playlist cover images
 
 ## Tech Stack
 
@@ -97,6 +98,30 @@ npm run dev
 ```
 
 Visit `http://localhost:8888` to see the app.
+
+## Testing
+
+### Validate Playlist Functionality
+
+Run the test script to ensure everything is configured correctly:
+
+```bash
+node test/test-playlist.js
+```
+
+This will verify:
+- Playlist ID extraction from various URL formats
+- Station configuration is correct
+- All required methods are implemented
+- Your 90s playlist is properly configured
+
+### Test Playlist ID Extraction
+
+You can also test the playlist ID extraction utility directly:
+
+```bash
+node utils/extract-playlist-id.js "https://open.spotify.com/playlist/YOUR_PLAYLIST_URL"
+```
 
 ## Project Structure
 
@@ -195,16 +220,16 @@ To add a new playlist-based station:
      id: 'my-station-id', 
      name: 'My Station Name', 
      description: 'Station description', 
-     image: 'stations/my-station.png', // or 'placeholder.jpg'
+     image: 'placeholder.jpg', // Fallback only - playlist cover will be used
      type: 'playlist',
      playlistId: 'YOUR_PLAYLIST_ID_HERE'
    }
    ```
 
-3. **Add Station Cover Image** (optional):
-   - Add a cover image to the `stations/` directory
-   - Recommended size: 1000x1556px (aspect ratio 9:14)
-   - Update the `image` field in the station configuration
+3. **Cover Images**: 
+   - The app will automatically fetch and display the playlist's cover art
+   - The `image` field serves as a fallback if the playlist has no cover
+   - No need to create custom station images for playlist-based stations
 
 ### Example: Adding a 2000s Station
 
@@ -233,16 +258,26 @@ The application uses a flexible station system:
 
 1. **Station Configuration**: All stations are defined in the `STATIONS` array
 2. **Dynamic Loading**: Tracks are fetched from Spotify API based on station type
-3. **Caching**: Playlist tracks are cached for 5 minutes to reduce API calls
-4. **Error Handling**: Gracefully handles missing playlists or unavailable tracks
+3. **Dynamic Cover Art**: Playlist cover images are automatically fetched and displayed
+4. **Caching**: Playlist tracks and metadata are cached to reduce API calls
+5. **Error Handling**: Gracefully handles missing playlists, unavailable tracks, or missing cover images
 
 ### Playback Flow
 
 1. User selects a station
 2. System determines station type (liked/playlist)
-3. Fetches tracks from appropriate source
-4. Plays random track at random position
-5. Automatically queues next track when current ends
+3. For playlists: Fetches playlist metadata and updates cover image
+4. Fetches tracks from appropriate source
+5. Plays random track at random position
+6. Automatically queues next track when current ends
+
+### Dynamic Cover Images
+
+- **Automatic**: Playlist-based stations automatically display the actual playlist cover art
+- **Cached**: Cover images and metadata are cached for 30 minutes
+- **Fallback**: If a playlist has no cover or fails to load, the original station image is kept
+- **Loading States**: Subtle visual feedback while images are being fetched
+- **Performance**: Images are preloaded in the background when the app starts
 
 ## Features Not Yet Implemented
 
