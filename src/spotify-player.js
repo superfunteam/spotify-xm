@@ -23,7 +23,7 @@ const STATIONS = [
     id: 'liked', 
     name: 'Liked Songs', 
     description: 'Your favorite tracks', 
-    image: 'stations/station-liked.png',
+    image: 'stations/station-liked.webp',
     type: 'liked' // Special type for liked songs
   },
   { 
