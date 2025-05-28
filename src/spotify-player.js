@@ -12,6 +12,8 @@ const CONFIG = {
   STATION_SCROLL_BEHAVIOR: 'smooth',
   RANDOM_POSITION_MIN: 0.2, // 20%
   RANDOM_POSITION_MAX: 0.5, // 50%
+  VOLUME_FADE_DURATION: 300, // ms
+  VOLUME_FADE_STEPS: 10, // number of steps for volume fade
 };
 
 // Station definitions
@@ -114,6 +116,8 @@ class SpotifyPlayer {
     this.cacheExpiresAt = null;
     this.retryCount = 0;
     this.isInitializing = false;
+    this.savedVolume = 0.5; // Store the user's preferred volume
+    this.isTransitioning = false; // Track if we're in a transition
   }
 
   async init() {
@@ -470,6 +474,24 @@ class SpotifyPlayer {
   }
 
   handleStateChange(state) {
+    // Update MediaSession playback state based on actual player state
+    if ('mediaSession' in navigator && state) {
+      navigator.mediaSession.playbackState = state.paused ? 'paused' : 'playing';
+      
+      // Update position state for scrubbing support
+      if (state.position !== undefined && state.duration !== undefined) {
+        try {
+          navigator.mediaSession.setPositionState({
+            duration: state.duration / 1000, // Convert to seconds
+            playbackRate: 1.0,
+            position: state.position / 1000 // Convert to seconds
+          });
+        } catch (error) {
+          console.log('MediaSession position state not supported:', error);
+        }
+      }
+    }
+
     // Check for track ending
     if (this.previousState && this.isTrackEnding(state, this.previousState)) {
       this.handleTrackEnding();
@@ -494,10 +516,11 @@ class SpotifyPlayer {
   }
 
   handleTrackEnding() {
-    console.log('Track ended naturally, playing next song');
+    console.log('Track ended naturally, playing next song from beginning');
     this.trackEndingProcessed = true;
     
     setTimeout(() => {
+      // For natural track endings, always play from beginning (0:00)
       this.playNextTrackFromBeginning();
       setTimeout(() => { 
         this.trackEndingProcessed = false; 
@@ -511,6 +534,9 @@ class SpotifyPlayer {
       console.error('Station not found:', this.currentStation);
       return;
     }
+
+    // Mark that we're in a transition to maintain MediaSession
+    this.isTransitioning = true;
 
     switch (currentStationData.type) {
       case 'liked':
@@ -527,6 +553,9 @@ class SpotifyPlayer {
         // For unsupported types, just play from liked songs as fallback
         await this.playRandomLikedSongFromBeginning();
     }
+
+    // Transition complete
+    this.isTransitioning = false;
   }
 
   async onPlayerReady() {
@@ -544,21 +573,44 @@ class SpotifyPlayer {
 
     console.log('Setting up MediaSession handlers');
 
-    navigator.mediaSession.setActionHandler('play', () => {
-      this.player?.resume();
+    navigator.mediaSession.setActionHandler('play', async () => {
+      console.log('Play triggered from MediaSession');
+      if (this.player) {
+        await this.player.resume();
+        // Update playback state
+        navigator.mediaSession.playbackState = 'playing';
+      }
     });
 
-    navigator.mediaSession.setActionHandler('pause', () => {
-      this.player?.pause();
+    navigator.mediaSession.setActionHandler('pause', async () => {
+      console.log('Pause triggered from MediaSession');
+      if (this.player) {
+        await this.player.pause();
+        // Update playback state
+        navigator.mediaSession.playbackState = 'paused';
+      }
     });
 
-    navigator.mediaSession.setActionHandler('nexttrack', () => {
-      this.playFromCurrentStation();
+    navigator.mediaSession.setActionHandler('nexttrack', async () => {
+      console.log('Next track triggered from MediaSession');
+      // Maintain playing state during transition
+      if (this.player) {
+        navigator.mediaSession.playbackState = 'playing';
+        await this.playFromCurrentStation();
+      }
     });
 
-    navigator.mediaSession.setActionHandler('previoustrack', () => {
-      this.playFromCurrentStation();
+    navigator.mediaSession.setActionHandler('previoustrack', async () => {
+      console.log('Previous track triggered from MediaSession');
+      // Maintain playing state during transition
+      if (this.player) {
+        navigator.mediaSession.playbackState = 'playing';
+        await this.playFromCurrentStation();
+      }
     });
+
+    // Set initial playback state
+    navigator.mediaSession.playbackState = 'none';
   }
 
   async fetchLikedSongs(forceRefresh = false) {
@@ -629,29 +681,44 @@ class SpotifyPlayer {
       }
 
       const randomTrack = this.selectRandomTrack(data.items);
+      // Mark as transitioning for smooth MediaSession handling
+      this.isTransitioning = true;
       await this.playTrack(randomTrack.uri);
+      this.isTransitioning = false;
+      
+      console.log('Playing track from beginning (natural progression)');
     } catch (error) {
       console.error('Error playing random liked song:', error);
+      this.isTransitioning = false;
     }
   }
 
   async playRandomLikedSongAtRandomPosition() {
     try {
+      // Save current volume and mute for smooth transition
+      await this.muteForTransition();
+      
       const data = await this.fetchLikedSongs();
       
       if (!data.items || data.items.length === 0) {
         this.showError('No liked songs found. Please like some songs on Spotify first.');
+        await this.restoreVolume();
         return;
       }
 
       const randomTrack = this.selectRandomTrack(data.items);
       await this.playTrack(randomTrack.uri);
 
-      // Seek to random position after a delay
+      // Seek to random position after a delay, then restore volume
       const randomPosition = this.calculateRandomPosition(randomTrack.duration_ms);
-      setTimeout(() => this.seekToPosition(randomPosition), CONFIG.SEEK_DELAY);
+      setTimeout(async () => {
+        await this.seekToPosition(randomPosition);
+        // Restore volume after seeking is complete
+        setTimeout(() => this.restoreVolume(), 200);
+      }, CONFIG.SEEK_DELAY);
     } catch (error) {
       console.error('Error playing random song at random position:', error);
+      await this.restoreVolume();
     }
   }
 
@@ -670,6 +737,10 @@ class SpotifyPlayer {
     if (!this.deviceId) {
       throw new Error('No device ID available');
     }
+
+    // Mark as transitioning to maintain MediaSession
+    const wasTransitioning = this.isTransitioning;
+    this.isTransitioning = true;
 
     // First ensure our device is active
     await this.ensureDeviceActive();
@@ -692,9 +763,20 @@ class SpotifyPlayer {
     if (!response.ok && response.status !== 204) {
       throw new Error(`Failed to play track: ${response.status}`);
     }
+
+    // Restore transition state if it wasn't set before
+    if (!wasTransitioning) {
+      this.isTransitioning = false;
+    }
   }
 
   async ensureDeviceActive() {
+    // Only transfer if not already active and not transitioning
+    if (this.isTransitioning) {
+      console.log('Already transitioning, skipping device transfer');
+      return;
+    }
+
     const response = await this.fetchWithRetry(
       `https://api.spotify.com/v1/me/player`,
       {
@@ -705,7 +787,7 @@ class SpotifyPlayer {
         },
         body: JSON.stringify({
           device_ids: [this.deviceId],
-          play: false
+          play: false // Don't start playing yet
         })
       }
     );
@@ -800,6 +882,11 @@ class SpotifyPlayer {
         type: 'image/jpeg'
       }))
     });
+
+    // Ensure playback state is set to playing
+    if (!this.isTransitioning) {
+      navigator.mediaSession.playbackState = 'playing';
+    }
   }
 
   startTimeUpdates() {
@@ -841,6 +928,19 @@ class SpotifyPlayer {
       const progressPercentage = (position / duration) * 100;
       progressElement.style.width = `${progressPercentage}%`;
     }
+
+    // Update MediaSession position
+    if ('mediaSession' in navigator && position !== undefined && duration !== undefined) {
+      try {
+        navigator.mediaSession.setPositionState({
+          duration: duration / 1000,
+          playbackRate: 1.0,
+          position: position / 1000
+        });
+      } catch (error) {
+        // Silently fail - not all browsers support this
+      }
+    }
   }
 
   handleNowPlayingClick() {
@@ -853,6 +953,7 @@ class SpotifyPlayer {
     const nowPlayingArea = document.querySelector('.now-playing-container');
     nowPlayingArea?.classList.add('loading');
     
+    // Play from current station with smooth transition
     this.playFromCurrentStation().finally(() => {
       nowPlayingArea?.classList.remove('loading');
     });
@@ -993,10 +1094,14 @@ class SpotifyPlayer {
 
   async playRandomPlaylistSongAtRandomPosition(playlistId) {
     try {
+      // Save current volume and mute for smooth transition
+      await this.muteForTransition();
+      
       const data = await this.fetchPlaylistTracks(playlistId);
       
       if (!data.items || data.items.length === 0) {
         this.showError('No tracks found in this playlist.');
+        await this.restoreVolume();
         return;
       }
 
@@ -1005,17 +1110,23 @@ class SpotifyPlayer {
       
       if (availableTracks.length === 0) {
         this.showError('No playable tracks found in this playlist.');
+        await this.restoreVolume();
         return;
       }
 
       const randomTrack = this.selectRandomTrack(availableTracks);
       await this.playTrack(randomTrack.uri);
 
-      // Seek to random position after a delay
+      // Seek to random position after a delay, then restore volume
       const randomPosition = this.calculateRandomPosition(randomTrack.duration_ms);
-      setTimeout(() => this.seekToPosition(randomPosition), CONFIG.SEEK_DELAY);
+      setTimeout(async () => {
+        await this.seekToPosition(randomPosition);
+        // Restore volume after seeking is complete
+        setTimeout(() => this.restoreVolume(), 200);
+      }, CONFIG.SEEK_DELAY);
     } catch (error) {
       console.error('Error playing random playlist song:', error);
+      await this.restoreVolume();
     }
   }
 
@@ -1037,9 +1148,15 @@ class SpotifyPlayer {
       }
 
       const randomTrack = this.selectRandomTrack(availableTracks);
+      // Mark as transitioning for smooth MediaSession handling
+      this.isTransitioning = true;
       await this.playTrack(randomTrack.uri);
+      this.isTransitioning = false;
+      
+      console.log('Playing playlist track from beginning (natural progression)');
     } catch (error) {
       console.error('Error playing random playlist song from beginning:', error);
+      this.isTransitioning = false;
     }
   }
 
@@ -1171,6 +1288,62 @@ class SpotifyPlayer {
     Promise.allSettled(imagePromises).then(() => {
       console.log('Finished preloading station cover images');
     });
+  }
+
+  async muteForTransition() {
+    if (!this.player) return;
+    
+    try {
+      // Get current volume before muting
+      const state = await this.player.getCurrentState();
+      if (state) {
+        await this.player.getVolume().then(volume => {
+          this.savedVolume = volume;
+          console.log('Saved volume:', this.savedVolume);
+        });
+      }
+      
+      // Mute
+      await this.player.setVolume(0);
+      console.log('Muted for transition');
+    } catch (error) {
+      console.error('Error muting for transition:', error);
+    }
+  }
+
+  async restoreVolume() {
+    if (!this.player) return;
+    
+    try {
+      // Gradually restore volume for smooth transition
+      const targetVolume = this.savedVolume || 0.5;
+      
+      // Quick fade in
+      const steps = CONFIG.VOLUME_FADE_STEPS;
+      const stepSize = targetVolume / steps;
+      const stepDelay = CONFIG.VOLUME_FADE_DURATION / steps;
+      
+      for (let i = 1; i <= steps; i++) {
+        setTimeout(async () => {
+          try {
+            await this.player.setVolume(stepSize * i);
+            if (i === steps) {
+              console.log('Volume restored to:', targetVolume);
+            }
+          } catch (error) {
+            console.error('Error in volume fade:', error);
+          }
+        }, stepDelay * i);
+      }
+    } catch (error) {
+      console.error('Error restoring volume:', error);
+      // Fallback: try to set volume directly
+      try {
+        await this.player.setVolume(this.savedVolume || 0.5);
+      } catch (fallbackError) {
+        console.error('Fallback volume restore failed:', fallbackError);
+      }
+    }
   }
 }
 

@@ -8,11 +8,35 @@ A modern web-based music player that mimics XM radio functionality using the Spo
 - 📻 **Station selection** - Browse through different stations (Liked Songs, 90s, and more coming soon)
 - ⏭️ **Skip functionality** - Click the now playing area to skip to a random position in a random song
 - 🎮 **Bluetooth controls** - Full support for media controls from Bluetooth devices, headphones, and car systems
-- 🔄 **Auto-play next track** - Automatically plays the next random song when a track ends
+- 🔄 **Continuous playback** - Automatically plays the next song when a track ends, creating an endless radio experience
+- 🔇 **Smooth transitions** - Volume fades during track skips to eliminate jarring audio cuts
+- 📡 **Stable Bluetooth connection** - MediaSession stays active during track changes to prevent device disconnections
 - 🔐 **Secure authentication** - OAuth 2.0 flow with token refresh support
 - 📱 **Responsive design** - Works on desktop and mobile devices
 - 🎯 **Playlist-based stations** - Support for Spotify playlist integration
 - 🖼️ **Dynamic cover art** - Automatically fetches and displays playlist cover images
+
+## Playback Behavior
+
+### Natural Track Progression
+When a song ends naturally:
+- The next random song starts from 0:00
+- Plays the full track without interruption
+- Continues indefinitely for a true radio experience
+- No volume changes for seamless transitions
+
+### Manual Track Skipping
+When you skip tracks (click now playing area or use Bluetooth controls):
+- Volume smoothly fades out
+- New track loads and seeks to a random position (20-50% through)
+- Volume fades back in after seeking completes
+- Prevents the jarring sound of brief playback before seeking
+
+### Bluetooth & MediaSession
+- MediaSession stays continuously active
+- Position updates for accurate progress display on external devices
+- No disconnection/reconnection during track changes
+- Full support for play/pause/next/previous controls
 
 ## Tech Stack
 
