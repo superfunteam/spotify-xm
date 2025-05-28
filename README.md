@@ -1,16 +1,17 @@
 # Spotify XM - Music Player
 
-A modern web-based music player that mimics XM radio functionality using the Spotify Web API and Web Playback SDK. The app plays random songs from your liked tracks, simulating the radio experience.
+A modern web-based music player that mimics XM radio functionality using the Spotify Web API and Web Playback SDK. The app plays random songs from your liked tracks or curated playlists, simulating the radio experience.
 
 ## Features
 
-- 🎵 **Radio-style playback** - Plays random songs from your liked tracks
-- 📻 **Station selection** - Browse through different stations (currently only "Liked Songs" is active)
+- 🎵 **Radio-style playback** - Plays random songs from your liked tracks or playlists
+- 📻 **Station selection** - Browse through different stations (Liked Songs, 90s, and more coming soon)
 - ⏭️ **Skip functionality** - Click the now playing area to skip to a random position in a random song
 - 🎮 **Bluetooth controls** - Full support for media controls from Bluetooth devices, headphones, and car systems
 - 🔄 **Auto-play next track** - Automatically plays the next random song when a track ends
 - 🔐 **Secure authentication** - OAuth 2.0 flow with token refresh support
 - 📱 **Responsive design** - Works on desktop and mobile devices
+- 🎯 **Playlist-based stations** - Support for Spotify playlist integration
 
 ## Tech Stack
 
@@ -176,14 +177,82 @@ spotify-xm/
 8. **Multiple Initializations**: Prevents duplicate initialization attempts
 9. **Browser Compatibility**: Checks for MediaSession API support before using
 
+## Adding New Stations
+
+### Playlist-Based Stations
+
+To add a new playlist-based station:
+
+1. **Get the Playlist ID**: 
+   - From a Spotify playlist URL like `https://open.spotify.com/playlist/5nCCpeCobBAoF91TwgQetX?si=...`
+   - The playlist ID is: `5nCCpeCobBAoF91TwgQetX`
+
+2. **Update the Station Configuration**:
+   Edit `src/spotify-player.js` and find the `STATIONS` array:
+
+   ```javascript
+   { 
+     id: 'my-station-id', 
+     name: 'My Station Name', 
+     description: 'Station description', 
+     image: 'stations/my-station.png', // or 'placeholder.jpg'
+     type: 'playlist',
+     playlistId: 'YOUR_PLAYLIST_ID_HERE'
+   }
+   ```
+
+3. **Add Station Cover Image** (optional):
+   - Add a cover image to the `stations/` directory
+   - Recommended size: 1000x1556px (aspect ratio 9:14)
+   - Update the `image` field in the station configuration
+
+### Example: Adding a 2000s Station
+
+```javascript
+{ 
+  id: '2k', 
+  name: 'Y2K Hits', 
+  description: 'Pop from the 2000s', 
+  image: 'stations/station-2k.png',
+  type: 'playlist',
+  playlistId: 'YOUR_2000s_PLAYLIST_ID'
+}
+```
+
+### Station Types
+
+- **`liked`**: Special type for user's liked songs
+- **`playlist`**: Spotify playlist-based station
+- **`podcast`**: Reserved for future podcast support
+
+## Architecture
+
+### Station Management
+
+The application uses a flexible station system:
+
+1. **Station Configuration**: All stations are defined in the `STATIONS` array
+2. **Dynamic Loading**: Tracks are fetched from Spotify API based on station type
+3. **Caching**: Playlist tracks are cached for 5 minutes to reduce API calls
+4. **Error Handling**: Gracefully handles missing playlists or unavailable tracks
+
+### Playback Flow
+
+1. User selects a station
+2. System determines station type (liked/playlist)
+3. Fetches tracks from appropriate source
+4. Plays random track at random position
+5. Automatically queues next track when current ends
+
 ## Features Not Yet Implemented
 
-- Other station types (Oldies, 70s, 80s, etc.) - currently shows "coming soon" message
+- Other station types (Oldies, 70s, 80s, 2K, etc.) - add playlist IDs to enable
 - Playlist creation from played songs
 - Search functionality
 - User preferences storage
 - Volume control UI
 - Seek bar interaction
+- Custom user playlists as stations
 
 ## Known Limitations
 

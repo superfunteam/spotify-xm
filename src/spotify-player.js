@@ -16,16 +16,85 @@ const CONFIG = {
 
 // Station definitions
 const STATIONS = [
-  { id: 'liked', name: 'Liked Songs', description: 'Your favorite tracks', image: 'stations/station-liked.png' },
-  { id: 'oldies', name: 'Golden Oldies', description: 'Classics from the 50s & 60s', image: 'stations/station-oldies.png' },
-  { id: '70s', name: 'Groovy 70s', description: 'Hits from the seventies', image: 'stations/station-70s.png' },
-  { id: '80s', name: 'Awesome 80s', description: 'The unforgettable eighties', image: 'stations/station-80s.png' },
-  { id: '90s', name: '90s Throwback', description: 'Biggest hits of the nineties', image: 'stations/station-90s.png' },
-  { id: '2k', name: 'Y2K Hits', description: 'Pop from the 2000s', image: 'placeholder.jpg' },
-  { id: 'new', name: 'Fresh Finds', description: 'Latest music releases', image: 'placeholder.jpg' },
-  { id: 'party', name: 'Party Bangers', description: 'High-energy anthems', image: 'placeholder.jpg' },
-  { id: 'highschool', name: 'HS Rewind', description: 'Your high school soundtrack', image: 'placeholder.jpg' },
-  { id: 'talk', name: 'Talk & Podcasts', description: 'News, comedy & stories', image: 'placeholder.jpg' },
+  { 
+    id: 'liked', 
+    name: 'Liked Songs', 
+    description: 'Your favorite tracks', 
+    image: 'stations/station-liked.png',
+    type: 'liked' // Special type for liked songs
+  },
+  { 
+    id: 'oldies', 
+    name: 'Golden Oldies', 
+    description: 'Classics from the 50s & 60s', 
+    image: 'stations/station-oldies.png',
+    type: 'playlist',
+    playlistId: null // To be added when playlist is created
+  },
+  { 
+    id: '70s', 
+    name: 'Groovy 70s', 
+    description: 'Hits from the seventies', 
+    image: 'stations/station-70s.png',
+    type: 'playlist',
+    playlistId: null // To be added when playlist is created
+  },
+  { 
+    id: '80s', 
+    name: 'Awesome 80s', 
+    description: 'The unforgettable eighties', 
+    image: 'stations/station-80s.png',
+    type: 'playlist',
+    playlistId: null // To be added when playlist is created
+  },
+  { 
+    id: '90s', 
+    name: '90s Throwback', 
+    description: 'Biggest hits of the nineties', 
+    image: 'stations/station-90s.png',
+    type: 'playlist',
+    playlistId: '5nCCpeCobBAoF91TwgQetX' // Your 90s playlist
+  },
+  { 
+    id: '2k', 
+    name: 'Y2K Hits', 
+    description: 'Pop from the 2000s', 
+    image: 'placeholder.jpg',
+    type: 'playlist',
+    playlistId: null // To be added when playlist is created
+  },
+  { 
+    id: 'new', 
+    name: 'Fresh Finds', 
+    description: 'Latest music releases', 
+    image: 'placeholder.jpg',
+    type: 'playlist',
+    playlistId: null // To be added when playlist is created
+  },
+  { 
+    id: 'party', 
+    name: 'Party Bangers', 
+    description: 'High-energy anthems', 
+    image: 'placeholder.jpg',
+    type: 'playlist',
+    playlistId: null // To be added when playlist is created
+  },
+  { 
+    id: 'highschool', 
+    name: 'HS Rewind', 
+    description: 'Your high school soundtrack', 
+    image: 'placeholder.jpg',
+    type: 'playlist',
+    playlistId: null // To be added when playlist is created
+  },
+  { 
+    id: 'talk', 
+    name: 'Talk & Podcasts', 
+    description: 'News, comedy & stories', 
+    image: 'placeholder.jpg',
+    type: 'podcast',
+    playlistId: null // Could be a podcast show ID in the future
+  },
 ];
 
 class SpotifyPlayer {
@@ -41,6 +110,7 @@ class SpotifyPlayer {
     this.trackEndingProcessed = false;
     this.currentStation = 'liked';
     this.likedSongsCache = null;
+    this.playlistCache = {}; // Cache for playlist tracks
     this.cacheExpiresAt = null;
     this.retryCount = 0;
     this.isInitializing = false;
@@ -141,11 +211,31 @@ class SpotifyPlayer {
       return;
     }
 
-    // For now, only "liked" station is implemented
-    if (this.currentStation === 'liked') {
-      await this.playRandomLikedSongAtRandomPosition();
-    } else {
-      this.showNotification(`${STATIONS.find(s => s.id === this.currentStation)?.name} station coming soon!`);
+    const currentStationData = STATIONS.find(s => s.id === this.currentStation);
+    if (!currentStationData) {
+      console.error('Station not found:', this.currentStation);
+      return;
+    }
+
+    switch (currentStationData.type) {
+      case 'liked':
+        await this.playRandomLikedSongAtRandomPosition();
+        break;
+      
+      case 'playlist':
+        if (currentStationData.playlistId) {
+          await this.playRandomPlaylistSongAtRandomPosition(currentStationData.playlistId);
+        } else {
+          this.showNotification(`${currentStationData.name} playlist not configured yet!`);
+        }
+        break;
+      
+      case 'podcast':
+        this.showNotification(`${currentStationData.name} coming soon!`);
+        break;
+      
+      default:
+        this.showNotification(`${currentStationData.name} station type not supported!`);
     }
   }
 
@@ -402,11 +492,35 @@ class SpotifyPlayer {
     this.trackEndingProcessed = true;
     
     setTimeout(() => {
-      this.playRandomLikedSongFromBeginning();
+      this.playNextTrackFromBeginning();
       setTimeout(() => { 
         this.trackEndingProcessed = false; 
       }, 5000);
     }, 1000);
+  }
+
+  async playNextTrackFromBeginning() {
+    const currentStationData = STATIONS.find(s => s.id === this.currentStation);
+    if (!currentStationData) {
+      console.error('Station not found:', this.currentStation);
+      return;
+    }
+
+    switch (currentStationData.type) {
+      case 'liked':
+        await this.playRandomLikedSongFromBeginning();
+        break;
+      
+      case 'playlist':
+        if (currentStationData.playlistId) {
+          await this.playRandomPlaylistSongFromBeginning(currentStationData.playlistId);
+        }
+        break;
+      
+      default:
+        // For unsupported types, just play from liked songs as fallback
+        await this.playRandomLikedSongFromBeginning();
+    }
   }
 
   async onPlayerReady() {
@@ -826,6 +940,98 @@ class SpotifyPlayer {
     }
     if (this.player) {
       this.player.disconnect();
+    }
+  }
+
+  async fetchPlaylistTracks(playlistId, forceRefresh = false) {
+    // Check cache first
+    const cacheKey = `playlist_${playlistId}`;
+    if (!forceRefresh && this.playlistCache[cacheKey] && this.playlistCache[cacheKey].expiresAt > Date.now()) {
+      return this.playlistCache[cacheKey].data;
+    }
+
+    try {
+      console.log(`Fetching playlist tracks for playlist: ${playlistId}`);
+      
+      // Spotify allows max 100 tracks per request, but we'll get 50 for consistency
+      const response = await this.fetchWithRetry(
+        `https://api.spotify.com/v1/playlists/${playlistId}/tracks?limit=${CONFIG.LIKED_SONGS_LIMIT}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${this.accessToken}`
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch playlist tracks: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Cache the results for 5 minutes
+      this.playlistCache[cacheKey] = {
+        data: data,
+        expiresAt: Date.now() + 300000
+      };
+      
+      return data;
+    } catch (error) {
+      console.error('Error fetching playlist tracks:', error);
+      this.showError('Failed to load playlist tracks');
+      throw error;
+    }
+  }
+
+  async playRandomPlaylistSongAtRandomPosition(playlistId) {
+    try {
+      const data = await this.fetchPlaylistTracks(playlistId);
+      
+      if (!data.items || data.items.length === 0) {
+        this.showError('No tracks found in this playlist.');
+        return;
+      }
+
+      // Filter out null tracks (deleted or unavailable tracks)
+      const availableTracks = data.items.filter(item => item.track && item.track.uri);
+      
+      if (availableTracks.length === 0) {
+        this.showError('No playable tracks found in this playlist.');
+        return;
+      }
+
+      const randomTrack = this.selectRandomTrack(availableTracks);
+      await this.playTrack(randomTrack.uri);
+
+      // Seek to random position after a delay
+      const randomPosition = this.calculateRandomPosition(randomTrack.duration_ms);
+      setTimeout(() => this.seekToPosition(randomPosition), CONFIG.SEEK_DELAY);
+    } catch (error) {
+      console.error('Error playing random playlist song:', error);
+    }
+  }
+
+  async playRandomPlaylistSongFromBeginning(playlistId) {
+    try {
+      const data = await this.fetchPlaylistTracks(playlistId);
+      
+      if (!data.items || data.items.length === 0) {
+        this.showError('No tracks found in this playlist.');
+        return;
+      }
+
+      // Filter out null tracks
+      const availableTracks = data.items.filter(item => item.track && item.track.uri);
+      
+      if (availableTracks.length === 0) {
+        this.showError('No playable tracks found in this playlist.');
+        return;
+      }
+
+      const randomTrack = this.selectRandomTrack(availableTracks);
+      await this.playTrack(randomTrack.uri);
+    } catch (error) {
+      console.error('Error playing random playlist song from beginning:', error);
     }
   }
 }
