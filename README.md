@@ -323,6 +323,40 @@ The application uses a flexible station system:
 
 Feel free to submit issues and enhancement requests!
 
+## Troubleshooting
+
+### Continuous Playback Not Working
+
+If songs don't automatically advance to the next track:
+
+1. **Check Console Logs**
+   - Open browser console (F12)
+   - Look for "[Monitor]" logs near track end
+   - Check for "Track ended detected" messages
+
+2. **Quick Debug**
+   ```javascript
+   // Check if continuous playback is enabled
+   window.__spotifyPlayer.continuousPlaybackEnabled
+   
+   // Manually trigger next track
+   window.__spotifyPlayer.handleTrackEnding()
+   
+   // Reset stuck flags
+   window.__spotifyPlayer.trackEndingProcessed = false
+   ```
+
+3. **Enable Debug Mode**
+   - Debug mode is enabled by default
+   - See detailed logs in console
+   - Check `test/continuous-playback-debug.md` for comprehensive debugging
+
+4. **Common Causes**
+   - Browser doesn't support Web Playback SDK fully (use Chrome/Edge)
+   - Network connectivity issues
+   - Spotify account limitations
+   - Rate limiting from excessive API calls
+
 ## License
 
 MIT License - feel free to use this code for your own projects! 

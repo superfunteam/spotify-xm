@@ -14,6 +14,7 @@ const CONFIG = {
   RANDOM_POSITION_MAX: 0.5, // 50%
   VOLUME_FADE_DURATION: 300, // ms
   VOLUME_FADE_STEPS: 10, // number of steps for volume fade
+  DEBUG_PLAYBACK: true, // Enable detailed logging for continuous playback
 };
 
 // Station definitions
@@ -43,11 +44,11 @@ const STATIONS = [
   },
   { 
     id: '80s', 
-    name: 'Awesome 80s', 
+    name: 'All Out 80s', 
     description: 'The unforgettable eighties', 
     image: 'stations/station-80s.png',
     type: 'playlist',
-    playlistId: null // To be added when playlist is created
+    playlistId: '08k56nfGw0gD8t3oXz8ugt'
   },
   { 
     id: '90s', 
@@ -118,6 +119,9 @@ class SpotifyPlayer {
     this.isInitializing = false;
     this.savedVolume = 0.5; // Store the user's preferred volume
     this.isTransitioning = false; // Track if we're in a transition
+    this.lastKnownPosition = 0; // Track position for stall detection
+    this.positionStallCount = 0; // Count position stalls
+    this.continuousPlaybackEnabled = true; // Flag to control continuous playback
   }
 
   async init() {
@@ -452,6 +456,13 @@ class SpotifyPlayer {
 
     // Playback status updates
     this.player.addListener('player_state_changed', (state) => {
+      console.log('Player state changed:', state ? {
+        paused: state.paused,
+        position: state.position,
+        duration: state.duration,
+        track: state.track_window?.current_track?.name
+      } : 'null state');
+      
       if (!state) return;
       
       this.handleStateChange(state);
@@ -492,40 +503,102 @@ class SpotifyPlayer {
       }
     }
 
-    // Check for track ending
-    if (this.previousState && this.isTrackEnding(state, this.previousState)) {
+    // Enhanced track ending detection
+    if (state && this.isTrackAtEnd(state)) {
       this.handleTrackEnding();
     }
     
     this.previousState = { ...state };
   }
 
-  isTrackEnding(currentState, previousState) {
-    if (!currentState.position || !currentState.duration || 
-        !previousState.position || !previousState.duration) {
+  isTrackAtEnd(state) {
+    if (!state || state.position === undefined || state.duration === undefined) {
       return false;
     }
 
-    const currentProgress = (currentState.position / currentState.duration) * 100;
-    const previousProgress = (previousState.position / previousState.duration) * 100;
+    const positionMs = state.position;
+    const durationMs = state.duration;
+    const timeRemainingMs = durationMs - positionMs;
     
-    return previousProgress > CONFIG.TRACK_END_THRESHOLD && 
-           currentProgress < CONFIG.TRACK_RESET_THRESHOLD && 
-           Math.abs(currentState.duration - previousState.duration) < 5000 && 
-           !this.trackEndingProcessed;
+    // More detailed logging
+    if (timeRemainingMs < 2000) {
+      console.log(`Track progress: ${(positionMs/1000).toFixed(1)}s / ${(durationMs/1000).toFixed(1)}s (${timeRemainingMs}ms remaining) - Paused: ${state.paused}`);
+    }
+
+    // Check multiple conditions for track ending
+    const conditions = {
+      isPaused: state.paused,
+      nearEnd: timeRemainingMs < 1000 && timeRemainingMs >= -100, // Within 1 second of end (with small negative buffer)
+      atExactEnd: positionMs >= durationMs,
+      notProcessed: !this.trackEndingProcessed
+    };
+
+    // Track has ended if any of these combinations are true:
+    const isEnded = conditions.notProcessed && (
+      // Paused within 1 second of the end
+      (conditions.isPaused && conditions.nearEnd) ||
+      // Position is at or past duration (regardless of pause state)
+      conditions.atExactEnd ||
+      // Stalled at near the end (position not changing)
+      (this.isPositionStalled(state) && timeRemainingMs < 2000)
+    );
+
+    if (isEnded) {
+      console.log('Track ended detected:', conditions);
+    }
+
+    return isEnded;
+  }
+
+  isPositionStalled(state) {
+    if (!state || state.position === undefined) {
+      return false;
+    }
+
+    // Check if position hasn't changed
+    const hasStalled = !state.paused && 
+                      Math.abs(state.position - this.lastKnownPosition) < 100; // Less than 100ms change
+
+    if (hasStalled) {
+      this.positionStallCount++;
+      console.log('Position stalled, count:', this.positionStallCount);
+    } else {
+      this.positionStallCount = 0;
+      this.lastKnownPosition = state.position;
+    }
+
+    // Consider it stalled if position hasn't changed for 3 consecutive checks
+    return this.positionStallCount >= 3;
   }
 
   handleTrackEnding() {
-    console.log('Track ended naturally, playing next song from beginning');
+    if (!this.continuousPlaybackEnabled) {
+      console.log('Continuous playback disabled, not advancing to next track');
+      return;
+    }
+
+    console.log('=== TRACK ENDING - Starting next track ===');
     this.trackEndingProcessed = true;
     
+    // Reset stall detection
+    this.positionStallCount = 0;
+    
+    // Small delay to ensure the current track has fully stopped
     setTimeout(() => {
-      // For natural track endings, always play from beginning (0:00)
-      this.playNextTrackFromBeginning();
+      console.log('Executing next track playback...');
+      this.playNextTrackFromBeginning().then(() => {
+        console.log('Next track playback initiated successfully');
+      }).catch(error => {
+        console.error('Failed to play next track:', error);
+        this.trackEndingProcessed = false; // Reset on error to allow retry
+      });
+      
+      // Reset the flag after a longer delay
       setTimeout(() => { 
-        this.trackEndingProcessed = false; 
+        this.trackEndingProcessed = false;
+        console.log('Track ending flag reset');
       }, 5000);
-    }, 1000);
+    }, 500); // Reduced delay from 1000ms to 500ms for quicker response
   }
 
   async playNextTrackFromBeginning() {
@@ -562,6 +635,8 @@ class SpotifyPlayer {
     this.setupMediaSessionHandlers();
     // Preload playlist cover images
     await this.preloadStationCoverImages();
+    // Start continuous playback monitoring
+    this.startContinuousPlaybackMonitor();
     await this.playFromCurrentStation();
   }
 
@@ -673,23 +748,32 @@ class SpotifyPlayer {
 
   async playRandomLikedSongFromBeginning() {
     try {
+      console.log('Playing random liked song from beginning...');
       const data = await this.fetchLikedSongs();
       
       if (!data.items || data.items.length === 0) {
+        console.error('No liked songs found for continuous playback');
         this.showError('No liked songs found. Please like some songs on Spotify first.');
         return;
       }
 
       const randomTrack = this.selectRandomTrack(data.items);
+      console.log(`Selected track: ${randomTrack.name} by ${randomTrack.artists[0].name}`);
+      
       // Mark as transitioning for smooth MediaSession handling
       this.isTransitioning = true;
+      
+      // Don't mute for natural progression - just play the track
       await this.playTrack(randomTrack.uri);
+      
       this.isTransitioning = false;
       
-      console.log('Playing track from beginning (natural progression)');
+      console.log('Track started successfully (natural progression)');
     } catch (error) {
-      console.error('Error playing random liked song:', error);
+      console.error('Error playing random liked song from beginning:', error);
       this.isTransitioning = false;
+      // Reset the ending flag to allow retry
+      this.trackEndingProcessed = false;
     }
   }
 
@@ -820,10 +904,15 @@ class SpotifyPlayer {
 
   updateNowPlayingUI(state) {
     if (!state || !state.track_window || !state.track_window.current_track) {
+      console.log('Cannot update UI - no track information in state');
       return;
     }
 
     const { track_window: { current_track }, position, duration } = state;
+
+    if (CONFIG.DEBUG_PLAYBACK) {
+      console.log(`Updating UI for: ${current_track.name} (${(position/1000).toFixed(1)}/${(duration/1000).toFixed(1)}s)`);
+    }
 
     // Update cover image
     const coverElement = document.querySelector('.now-playing .cover');
@@ -897,8 +986,13 @@ class SpotifyPlayer {
       
       try {
         const state = await this.player.getCurrentState();
-        if (state && !state.paused) {
+        if (state) {
           this.updateElapsedTime(state.position, state.duration);
+          
+          // Additional check for track ending during time updates
+          if (this.isTrackAtEnd(state)) {
+            this.handleTrackEnding();
+          }
         }
       } catch (error) {
         console.error('Error updating time:', error);
@@ -1132,9 +1226,11 @@ class SpotifyPlayer {
 
   async playRandomPlaylistSongFromBeginning(playlistId) {
     try {
+      console.log(`Playing random playlist song from beginning (playlist: ${playlistId})...`);
       const data = await this.fetchPlaylistTracks(playlistId);
       
       if (!data.items || data.items.length === 0) {
+        console.error('No tracks found in playlist for continuous playback');
         this.showError('No tracks found in this playlist.');
         return;
       }
@@ -1143,20 +1239,28 @@ class SpotifyPlayer {
       const availableTracks = data.items.filter(item => item.track && item.track.uri);
       
       if (availableTracks.length === 0) {
+        console.error('No playable tracks found in playlist');
         this.showError('No playable tracks found in this playlist.');
         return;
       }
 
       const randomTrack = this.selectRandomTrack(availableTracks);
+      console.log(`Selected track: ${randomTrack.name} by ${randomTrack.artists[0].name}`);
+      
       // Mark as transitioning for smooth MediaSession handling
       this.isTransitioning = true;
+      
+      // Don't mute for natural progression - just play the track
       await this.playTrack(randomTrack.uri);
+      
       this.isTransitioning = false;
       
-      console.log('Playing playlist track from beginning (natural progression)');
+      console.log('Playlist track started successfully (natural progression)');
     } catch (error) {
       console.error('Error playing random playlist song from beginning:', error);
       this.isTransitioning = false;
+      // Reset the ending flag to allow retry
+      this.trackEndingProcessed = false;
     }
   }
 
@@ -1345,12 +1449,53 @@ class SpotifyPlayer {
       }
     }
   }
+
+  startContinuousPlaybackMonitor() {
+    console.log('Starting continuous playback monitor...');
+    
+    // Check every 2 seconds for track ending as a failsafe
+    setInterval(async () => {
+      if (!this.player || !this.continuousPlaybackEnabled) return;
+      
+      try {
+        const state = await this.player.getCurrentState();
+        if (!state) return;
+        
+        const positionMs = state.position;
+        const durationMs = state.duration;
+        const timeRemainingMs = durationMs - positionMs;
+        
+        // Log current state if debug is enabled and we're near the end
+        if (CONFIG.DEBUG_PLAYBACK && timeRemainingMs < 5000) {
+          console.log(`[Monitor] Track: ${(positionMs/1000).toFixed(1)}/${(durationMs/1000).toFixed(1)}s, Remaining: ${(timeRemainingMs/1000).toFixed(1)}s, Paused: ${state.paused}, Processed: ${this.trackEndingProcessed}`);
+        }
+        
+        // Failsafe: if track is at the very end and hasn't been processed
+        if (timeRemainingMs < 500 && !this.trackEndingProcessed) {
+          console.log('[Monitor] Failsafe triggered - track near end without processing');
+          this.handleTrackEnding();
+        }
+      } catch (error) {
+        console.error('[Monitor] Error checking playback state:', error);
+      }
+    }, 2000);
+  }
 }
 
 // Initialize the player when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
   const player = new SpotifyPlayer();
   player.init();
+  
+  // Expose player instance for debugging
+  const nowPlayingContainer = document.querySelector('.now-playing-container');
+  if (nowPlayingContainer) {
+    nowPlayingContainer.__spotifyPlayer = player;
+    console.log('SpotifyPlayer instance exposed on .now-playing-container element for debugging');
+  }
+  
+  // Also expose globally for easier access
+  window.__spotifyPlayer = player;
   
   // Cleanup on page unload
   window.addEventListener('beforeunload', () => {
