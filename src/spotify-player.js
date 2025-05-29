@@ -22,14 +22,14 @@ const STATIONS = [
   { 
     id: 'liked', 
     name: 'Liked Songs', 
-    description: 'Your favorite tracks', 
+    description: 'Your favorites', 
     image: 'stations/station-liked.webp',
     type: 'liked' // Special type for liked songs
   },
   { 
     id: '70s', 
-    name: 'Groovy 70s', 
-    description: 'Hits from the seventies', 
+    name: '70s Gold', 
+    description: 'Hits from the 70s', 
     image: 'stations/station-70s.png',
     type: 'playlist',
     playlistId: '6Y5RFouEwOtDevkKXVST5W'
@@ -37,15 +37,15 @@ const STATIONS = [
   { 
     id: '80s', 
     name: 'All Out 80s', 
-    description: 'The unforgettable eighties', 
+    description: 'The unforgettable 80s', 
     image: 'stations/station-80s.png',
     type: 'playlist',
     playlistId: '08k56nfGw0gD8t3oXz8ugt'
   },
   { 
     id: '90s', 
-    name: '90s Throwback', 
-    description: 'Biggest hits of the nineties', 
+    name: '90s Throwbacks', 
+    description: 'Biggest hits of the 90s', 
     image: 'stations/station-90s.png',
     type: 'playlist',
     playlistId: '5nCCpeCobBAoF91TwgQetX' // Your 90s playlist
