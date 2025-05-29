@@ -657,6 +657,19 @@
   font-weight: 400;
   font-style: normal;
 }
+.time {
+  opacity: 100%;
+  transition-property: all;
+  transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+  transition-duration: var(--tw-duration, var(--default-transition-duration));
+  --tw-duration: 500ms;
+  transition-duration: 500ms;
+  --tw-ease: var(--ease-in-out);
+  transition-timing-function: var(--ease-in-out);
+}
+.-translate-x-[80%] .time {
+  opacity: 0%;
+}
 body {
   font-family: "Funnel Sans", sans-serif;
   font-optical-sizing: auto;
