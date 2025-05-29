@@ -12,12 +12,22 @@
 </head>
 <body class="w-full bg-emerald-950 m-0 p-0 text-white flex flex-col items-start justify-start h-screen min-h-screen overflow-hidden">
     <div class="stations relative overflow-hidden py-2 flex flex-col gap-0 bg-emerald-900 rounded-br-3xl w-[calc(100%-1.5rem)] shadow-[0_0_200px_rgba(0,0,0,1)] z-20">
-        <h2 class="special-gothic-condensed-one-regular text-xl text-white px-6 pt-3 flex flex-row items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 text-emerald-300">
-              <path d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v15.75c0 1.035.84 1.875 1.875 1.875h.75c1.035 0 1.875-.84 1.875-1.875V4.125c0-1.036-.84-1.875-1.875-1.875h-.75ZM9.75 8.625c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-.75a1.875 1.875 0 0 1-1.875-1.875V8.625ZM3 13.125c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v6.75c0 1.035-.84 1.875-1.875 1.875h-.75A1.875 1.875 0 0 1 3 19.875v-6.75Z" />
-            </svg>
-            <span>YOUR STATIONS</span>
-        </h2>
+      <div class="flex flex-row items-center justify-between px-6 pt-3">
+
+        <h2 class="special-gothic-condensed-one-regular text-xl text-white flex flex-row items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 text-emerald-300">
+            <path d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v15.75c0 1.035.84 1.875 1.875 1.875h.75c1.035 0 1.875-.84 1.875-1.875V4.125c0-1.036-.84-1.875-1.875-1.875h-.75ZM9.75 8.625c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-.75a1.875 1.875 0 0 1-1.875-1.875V8.625ZM3 13.125c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v6.75c0 1.035-.84 1.875-1.875 1.875h-.75A1.875 1.875 0 0 1 3 19.875v-6.75Z" />
+          </svg>
+          <span>YOUR STATIONS</span>
+      </h2>
+
+        <a href="#" class="menu-button">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+            <path fill-rule="evenodd" d="M3 6.75A.75.75 0 0 1 3.75 6h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 6.75ZM3 12a.75.75 0 0 1 .75-.75h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 12Zm0 5.25a.75.75 0 0 1 .75-.75h16.5a.75.75 0 0 1 0 1.5H3.75a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
+          </svg>          
+        </a>
+      </div>
+      
         <div class="bg-edge absolute pointer-events-none bottom-0 right-0 w-full h-full bg-cover bg-bottom-right blur-2xl z-10" style="background-image: url('bg-edge.png');">
             
         </div>
@@ -117,10 +127,10 @@
             <span>NOW PLAYING</span>
         </h2>
 
-        <div class="now-playing w-full p-6 grid grid-cols-2 gap-6">
+        <div class="now-playing w-full p-6 grid grid-cols-3 gap-6">
             <div class="aspect-square cover w-full h-full bg-cover bg-center rounded-lg shadow-lg transition-all duration-300" style="background-image: url('cover.png');">
             </div>
-            <div class="track-meta w-full flex flex-col gap-0 justify-between">
+            <div class="track-meta col-span-2 w-full flex flex-col gap-0 justify-between">
                 <div class="info">
                     <h2 class="track flex flex-col gap-2 text-xl font-semibold">
                         <span class="artist-name uppercase text-base text-emerald-300">Artist Name</span>
