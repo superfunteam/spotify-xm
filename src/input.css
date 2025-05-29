@@ -54,16 +54,20 @@ body {
   transition: width 0.3s ease-out;
 }
 
+.cover-pad{
+  @apply relative p-2;
+}
+
 .cover{
-  @apply relative ring-6 ring-emerald-900 p-2 ;
+  @apply relative ring-6 ring-emerald-900;
 }
 
 /* Active station styling */
-.station.active .cover {
+.station.active .cover-pad {
   
 }
 
-.station.active .cover:before{
+.station.active .cover-pad:before{
   @apply inset-0 absolute -z-1 bg-conic from-pink-200 to-pink-400 to-50% transition-all duration-1500 ease-linear;
   content: ' ';
 }
