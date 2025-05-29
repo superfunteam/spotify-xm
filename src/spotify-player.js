@@ -550,7 +550,14 @@ class SpotifyPlayer {
       console.log(`Track progress: ${(positionMs/1000).toFixed(1)}s / ${(durationMs/1000).toFixed(1)}s (${timeRemainingMs}ms remaining) - Paused: ${state.paused}`);
     }
 
-    // Check if position suddenly reset to near 0 (track restarted)
+    // NEW: Trigger ending 1 second before natural end while still playing
+    // This prevents Spotify's default behavior of resetting to 0 and pausing
+    if (!state.paused && timeRemainingMs > 0 && timeRemainingMs < 1000 && !this.trackEndingProcessed) {
+      console.log('Track approaching natural end - triggering early transition');
+      return true;
+    }
+
+    // FALLBACK: Check if position suddenly reset to near 0 (track restarted)
     if (this.previousState && 
         this.previousState.position > durationMs * 0.9 && // Was near the end
         positionMs < 1000 && // Now at the beginning
@@ -614,31 +621,51 @@ class SpotifyPlayer {
       return;
     }
 
+    // Prevent multiple simultaneous calls
+    if (this.trackEndingProcessed) {
+      console.log('Track ending already being processed, skipping');
+      return;
+    }
+
     console.log('=== TRACK ENDING - Starting next track ===');
     this.trackEndingProcessed = true;
     
     // Reset stall detection
     this.positionStallCount = 0;
     
-    // Ensure we stop any current playback first
-    this.player.pause().catch(err => console.log('Error pausing:', err));
+    // Immediately pause to prevent any further playback issues
+    this.player.pause().then(() => {
+      console.log('Current track paused successfully');
+    }).catch(err => {
+      console.log('Error pausing (may already be paused):', err);
+    });
     
     // Small delay to ensure the current track has fully stopped
     setTimeout(() => {
       console.log('Executing next track playback...');
       this.playNextTrackFromBeginning().then(() => {
         console.log('Next track playback initiated successfully');
+        // Reset the flag after successful transition
+        setTimeout(() => { 
+          this.trackEndingProcessed = false;
+          console.log('Track ending flag reset');
+        }, 3000); // Reduced from 5000 for quicker recovery
       }).catch(error => {
         console.error('Failed to play next track:', error);
         this.trackEndingProcessed = false; // Reset on error to allow retry
+        
+        // Show error to user
+        this.showError('Failed to play next track. Trying again...');
+        
+        // Try once more after a delay
+        setTimeout(() => {
+          this.playNextTrackFromBeginning().catch(err => {
+            console.error('Retry also failed:', err);
+            this.showError('Playback failed. Click to skip to next track.');
+          });
+        }, 2000);
       });
-      
-      // Reset the flag after a longer delay
-      setTimeout(() => { 
-        this.trackEndingProcessed = false;
-        console.log('Track ending flag reset');
-      }, 5000);
-    }, 500); // Reduced delay from 1000ms to 500ms for quicker response
+    }, 500); // Reduced delay from 500ms to 500ms for consistency
   }
 
   async playNextTrackFromBeginning() {
@@ -1597,22 +1624,43 @@ class SpotifyPlayer {
         const durationMs = state.duration;
         const timeRemainingMs = durationMs - positionMs;
         
-        // Log current state if debug is enabled and we're near the end
+        // Log current state if debug is enabled and we're near the end or beginning
         if (CONFIG.DEBUG_PLAYBACK && (timeRemainingMs < 5000 || positionMs < 1000)) {
           console.log(`[Monitor] Track: ${(positionMs/1000).toFixed(1)}/${(durationMs/1000).toFixed(1)}s, Remaining: ${(timeRemainingMs/1000).toFixed(1)}s, Paused: ${state.paused}, Processed: ${this.trackEndingProcessed}`);
         }
         
-        // Special case: track is paused at position 0 and wasn't processed
-        if (positionMs < 500 && state.paused && !this.trackEndingProcessed && this.previousState) {
-          // Check if we were playing before
-          if (this.previousState.position > 10000 || this.previousState.position > durationMs * 0.8) {
-            console.log('[Monitor] Detected track reset to beginning while paused - triggering next track');
+        // CRITICAL: If track is paused at position 0 and we haven't processed it
+        // This catches the exact scenario from the logs
+        if (state.paused && positionMs < 500 && !this.trackEndingProcessed) {
+          // Check if this is a natural ending (was playing before)
+          if (this.previousState && !this.previousState.paused && this.previousState.position > durationMs * 0.8) {
+            console.log('[Monitor] CRITICAL: Track ended naturally and reset to 0 while paused - forcing next track');
             this.handleTrackEnding();
             return;
           }
+          
+          // Also check if we've been stuck at position 0 for multiple checks
+          if (this.previousState && this.previousState.paused && this.previousState.position < 500) {
+            this.positionStallCount++;
+            if (this.positionStallCount > 2) { // Stuck for 6+ seconds
+              console.log('[Monitor] CRITICAL: Track stuck at position 0 while paused - forcing next track');
+              this.positionStallCount = 0;
+              this.handleTrackEnding();
+              return;
+            }
+          } else {
+            this.positionStallCount = 0;
+          }
         }
         
-        // Failsafe: if track is at the very end and hasn't been processed
+        // Early trigger: if track is playing and approaching end
+        if (!state.paused && timeRemainingMs > 0 && timeRemainingMs < 1200 && !this.trackEndingProcessed) {
+          console.log('[Monitor] Track approaching end - triggering early transition');
+          this.handleTrackEnding();
+          return;
+        }
+        
+        // Fallback: if track is at the very end and hasn't been processed
         if (timeRemainingMs < 500 && !this.trackEndingProcessed) {
           console.log('[Monitor] Failsafe triggered - track near end without processing');
           this.handleTrackEnding();
