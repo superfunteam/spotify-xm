@@ -55,7 +55,7 @@ body {
 }
 
 .cover{
-  @apply ring-6 ring-emerald-900 p-2 ;
+  @apply relative ring-6 ring-emerald-900 p-2 ;
 }
 
 /* Active station styling */
