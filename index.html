@@ -44,13 +44,13 @@
             <h2 class="text-sm text-white font-semibold mt-1 truncate w-full text-left">Liked Songs</h2>
             <h3 class="text-xs text-emerald-300 truncate w-full text-left">Your favorites</h3>
           </div>
-          <!-- Station 2: 70s Gold -->
+          <!-- Station 2: 90s Throwbacks -->
           <div class="station shrink-0 flex flex-col items-center space-y-0 w-1/3 rounded-lg cursor-pointer">
-            <div class="cover aspect-[9/14] w-full mb-3 rounded-lg shadow-md bg-cover bg-center transition-all duration-200" style="background-image: url('stations/station-70s.png');">
-              <span class="sr-only">70s Gold</span>
+            <div class="cover aspect-[9/14] w-full mb-3 rounded-lg shadow-md bg-cover bg-center transition-all duration-200" style="background-image: url('stations/station-90s.png');">
+              <span class="sr-only">90s Throwbacks</span>
             </div>
-            <h2 class="text-sm text-white font-semibold mt-1 truncate w-full text-left">70s Gold</h2>
-            <h3 class="text-xs text-emerald-300 truncate w-full text-left">Hits from the 70s</h3>
+            <h2 class="text-sm text-white font-semibold mt-1 truncate w-full text-left">90s Throwbacks</h2>
+            <h3 class="text-xs text-emerald-300 truncate w-full text-left">Biggest hits of the 90s</h3>
           </div>
           <!-- Station 3: All Out 80s -->
           <div class="station shrink-0 flex flex-col items-center space-y-0 w-1/3 rounded-lg cursor-pointer">
@@ -60,13 +60,13 @@
             <h2 class="text-sm text-white font-semibold mt-1 truncate w-full text-left">All Out 80s</h2>
             <h3 class="text-xs text-emerald-300 truncate w-full text-left">The unforgettable 80s</h3>
           </div>
-          <!-- Station 4: 90s Throwbacks -->
+          <!-- Station 4: 70s Gold -->
           <div class="station shrink-0 flex flex-col items-center space-y-0 w-1/3 rounded-lg cursor-pointer">
-            <div class="cover aspect-[9/14] w-full mb-3 rounded-lg shadow-md bg-cover bg-center transition-all duration-200" style="background-image: url('stations/station-90s.png');">
-              <span class="sr-only">90s Throwbacks</span>
+            <div class="cover aspect-[9/14] w-full mb-3 rounded-lg shadow-md bg-cover bg-center transition-all duration-200" style="background-image: url('stations/station-70s.png');">
+              <span class="sr-only">70s Gold</span>
             </div>
-            <h2 class="text-sm text-white font-semibold mt-1 truncate w-full text-left">90s Throwbacks</h2>
-            <h3 class="text-xs text-emerald-300 truncate w-full text-left">Biggest hits of the 90s</h3>
+            <h2 class="text-sm text-white font-semibold mt-1 truncate w-full text-left">70s Gold</h2>
+            <h3 class="text-xs text-emerald-300 truncate w-full text-left">Hits from the 70s</h3>
           </div>
           <!-- Station 5: Y2K Hits -->
           <div class="station shrink-0 flex flex-col items-center space-y-0 w-1/3 rounded-lg cursor-pointer">
@@ -145,6 +145,35 @@
                 </div>
             </div>
         </div>
+
+        <!-- Media Controls -->
+        <div class="media-controls w-full px-6 pb-6 flex items-center justify-around">
+            <button id="prev-track-btn" class="text-emerald-300 hover:text-emerald-100 p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-50">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-7">
+                    <path d="M5.25 4.5a.75.75 0 00-1.5 0v15a.75.75 0 001.5 0V4.5z" />
+                    <path fill-rule="evenodd" d="M18.97 4.03a.75.75 0 00-1.06 0l-8.25 8.25a.75.75 0 000 1.06l8.25 8.25a.75.75 0 101.06-1.06L11.31 12l7.69-7.69a.75.75 0 000-1.28z" clip-rule="evenodd" />
+                </svg>
+                <span class="sr-only">Previous Track</span>
+            </button>
+            <button id="play-pause-btn" class="bg-white text-emerald-900 p-3 rounded-full shadow-lg focus:outline-none focus:ring-4 focus:ring-emerald-300 focus:ring-opacity-75 transform hover:scale-105">
+                <!-- Play Icon (default) -->
+                <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-9">
+                    <path fill-rule="evenodd" d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clip-rule="evenodd" />
+                </svg>
+                <!-- Pause Icon (hidden by default) -->
+                <svg id="pause-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-9 hidden">
+                    <path fill-rule="evenodd" d="M6.75 5.25a.75.75 0 0 1 .75-.75H9a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H7.5a.75.75 0 0 1-.75-.75V5.25Zm7.5 0A.75.75 0 0 1 15 4.5h1.5a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H15a.75.75 0 0 1-.75-.75V5.25Z" clip-rule="evenodd" />
+                </svg>
+                <span class="sr-only">Play/Pause</span>
+            </button>
+            <button id="next-track-btn" class="text-emerald-300 hover:text-emerald-100 p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-50">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-7">
+                    <path d="M18.75 19.5a.75.75 0 001.5 0v-15a.75.75 0 00-1.5 0v15z" />
+                    <path fill-rule="evenodd" d="M5.03 19.97a.75.75 0 001.06 0l8.25-8.25a.75.75 0 000-1.06L5.03 4.03a.75.75 0 001.06 1.06L12.69 12l-7.69 7.69a.75.75 0 000 1.28z" clip-rule="evenodd" />
+                </svg>
+                <span class="sr-only">Next Track</span>
+            </button>
+        </div>
     </div>
 
     <!-- Settings Menu Panel -->
@@ -215,14 +244,14 @@
                         <div class="flex gap-3">
                             <div class="flex h-6 shrink-0 items-center">
                                 <div class="group grid size-4 grid-cols-1">
-                                <input id="station-70s" name="station-70s" type="checkbox" checked class="col-start-1 row-start-1 appearance-none rounded-sm border border-emerald-600 bg-white checked:border-emerald-500 checked:bg-emerald-500 indeterminate:border-emerald-500 indeterminate:bg-emerald-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 disabled:border-gray-300 disabled:bg-gray-100 disabled:checked:bg-gray-100 forced-colors:appearance-auto">
+                                <input id="station-90s" name="station-90s" type="checkbox" checked class="col-start-1 row-start-1 appearance-none rounded-sm border border-emerald-600 bg-white checked:border-emerald-500 checked:bg-emerald-500 indeterminate:border-emerald-500 indeterminate:bg-emerald-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 disabled:border-gray-300 disabled:bg-gray-100 disabled:checked:bg-gray-100 forced-colors:appearance-auto">
                                 <svg class="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-white group-has-disabled:stroke-gray-950/25" viewBox="0 0 14 14" fill="none">
                                     <path class="opacity-0 group-has-checked:opacity-100" d="M3 8L6 11L11 3.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                                 </svg>
                                 </div>
                             </div>
                             <div class="text-sm/6">
-                                <label for="station-70s" class="font-medium text-emerald-100">70s Gold</label>
+                                <label for="station-90s" class="font-medium text-emerald-100">90s Throwbacks</label>
                             </div>
                         </div>
                         <div class="flex gap-3">
@@ -241,14 +270,14 @@
                         <div class="flex gap-3">
                             <div class="flex h-6 shrink-0 items-center">
                                 <div class="group grid size-4 grid-cols-1">
-                                <input id="station-90s" name="station-90s" type="checkbox" checked class="col-start-1 row-start-1 appearance-none rounded-sm border border-emerald-600 bg-white checked:border-emerald-500 checked:bg-emerald-500 indeterminate:border-emerald-500 indeterminate:bg-emerald-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 disabled:border-gray-300 disabled:bg-gray-100 disabled:checked:bg-gray-100 forced-colors:appearance-auto">
+                                <input id="station-70s" name="station-70s" type="checkbox" checked class="col-start-1 row-start-1 appearance-none rounded-sm border border-emerald-600 bg-white checked:border-emerald-500 checked:bg-emerald-500 indeterminate:border-emerald-500 indeterminate:bg-emerald-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 disabled:border-gray-300 disabled:bg-gray-100 disabled:checked:bg-gray-100 forced-colors:appearance-auto">
                                 <svg class="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-white group-has-disabled:stroke-gray-950/25" viewBox="0 0 14 14" fill="none">
                                     <path class="opacity-0 group-has-checked:opacity-100" d="M3 8L6 11L11 3.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                                 </svg>
                                 </div>
                             </div>
                             <div class="text-sm/6">
-                                <label for="station-90s" class="font-medium text-emerald-100">90s Throwbacks</label>
+                                <label for="station-70s" class="font-medium text-emerald-100">70s Gold</label>
                             </div>
                         </div>
                         <div class="flex gap-3">

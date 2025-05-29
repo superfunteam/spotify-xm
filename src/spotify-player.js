@@ -27,12 +27,12 @@ const STATIONS = [
     type: 'liked' // Special type for liked songs
   },
   { 
-    id: '70s', 
-    name: '70s Gold', 
-    description: 'Hits from the 70s', 
-    image: 'stations/station-70s.png',
+    id: '90s', 
+    name: '90s Throwbacks', 
+    description: 'Biggest hits of the 90s', 
+    image: 'stations/station-90s.png',
     type: 'playlist',
-    playlistId: '6Y5RFouEwOtDevkKXVST5W'
+    playlistId: '5nCCpeCobBAoF91TwgQetX' // Your 90s playlist
   },
   { 
     id: '80s', 
@@ -43,12 +43,12 @@ const STATIONS = [
     playlistId: '08k56nfGw0gD8t3oXz8ugt'
   },
   { 
-    id: '90s', 
-    name: '90s Throwbacks', 
-    description: 'Biggest hits of the 90s', 
-    image: 'stations/station-90s.png',
+    id: '70s', 
+    name: '70s Gold', 
+    description: 'Hits from the 70s', 
+    image: 'stations/station-70s.png',
     type: 'playlist',
-    playlistId: '5nCCpeCobBAoF91TwgQetX' // Your 90s playlist
+    playlistId: '6Y5RFouEwOtDevkKXVST5W'
   },
   { 
     id: '2k', 
@@ -168,7 +168,13 @@ class SpotifyPlayer {
     const nowPlayingArea = document.querySelector('.now-playing-container');
     if (nowPlayingArea) {
       nowPlayingArea.style.cursor = 'pointer';
-      nowPlayingArea.addEventListener('click', () => this.handleNowPlayingClick());
+      nowPlayingArea.addEventListener('click', (event) => {
+        // Prevent click if it's on a media control button
+        if (event.target.closest('.media-controls button')) {
+            return;
+        }
+        this.handleNowPlayingClick();
+      });
     }
 
     // Handle visibility change to pause/resume updates
@@ -182,6 +188,21 @@ class SpotifyPlayer {
 
     // Initialize the first station (Liked) as active
     this.initializeDefaultStation();
+
+    // Media Controls
+    const prevBtn = document.getElementById('prev-track-btn');
+    const playPauseBtn = document.getElementById('play-pause-btn');
+    const nextBtn = document.getElementById('next-track-btn');
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => this.handlePrevTrack());
+    }
+    if (playPauseBtn) {
+        playPauseBtn.addEventListener('click', () => this.handlePlayPause());
+    }
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => this.handleNextTrack());
+    }
   }
 
   initializeDefaultStation() {
@@ -1052,10 +1073,11 @@ class SpotifyPlayer {
   updateNowPlayingUI(state) {
     if (!state || !state.track_window || !state.track_window.current_track) {
       console.log('Cannot update UI - no track information in state');
+      this.updatePlayPauseButton(true); // Default to play icon if no track
       return;
     }
 
-    const { track_window: { current_track }, position, duration } = state;
+    const { track_window: { current_track }, position, duration, paused } = state;
 
     // Store current track URI
     if (current_track.uri) {
@@ -1091,6 +1113,9 @@ class SpotifyPlayer {
 
     // Update MediaSession
     this.updateMediaSession(current_track);
+
+    // Update Play/Pause button icon
+    this.updatePlayPauseButton(paused);
   }
 
   updateTextElement(selector, text) {
@@ -1669,6 +1694,41 @@ class SpotifyPlayer {
         console.error('[Monitor] Error checking playback state:', error);
       }
     }, 2000);
+  }
+
+  updatePlayPauseButton(isPaused) {
+    const playIcon = document.getElementById('play-icon');
+    const pauseIcon = document.getElementById('pause-icon');
+    if (playIcon && pauseIcon) {
+        playIcon.classList.toggle('hidden', !isPaused);
+        pauseIcon.classList.toggle('hidden', isPaused);
+    }
+  }
+
+  async handlePrevTrack() {
+    if (!this.player) return;
+    console.log('Previous track button clicked');
+    await this.player.seek(0);
+    this.showNotification('Restarting track...');
+  }
+
+  async handlePlayPause() {
+    if (!this.player) return;
+    console.log('Play/Pause button clicked');
+    await this.player.togglePlay();
+    // Icon update will be handled by player_state_changed -> updateNowPlayingUI
+  }
+
+  async handleNextTrack() {
+    if (!this.player) return;
+    console.log('Next track button clicked');
+    // Add visual feedback
+    const nowPlayingArea = document.querySelector('.now-playing-container');
+    nowPlayingArea?.classList.add('loading');
+    this.showNotification('Skipping to next track...');
+    await this.playFromCurrentStation().finally(() => {
+      nowPlayingArea?.classList.remove('loading');
+    });
   }
 }
 
