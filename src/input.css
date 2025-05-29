@@ -55,28 +55,19 @@ body {
 }
 
 .cover{
-  @apply relative;
+  @apply ring-6 ring-emerald-900 p-2 ;
 }
 
 /* Active station styling */
 .station.active .cover {
-  @apply ring-6 ring-emerald-900;
+  
 }
 
 .station.active .cover:before{
-  @apply -inset-2.5 absolute bg-emerald-900/70 -z-1 rounded-[12.5%] bg-conic from-pink-200 to-pink-400 to-50% transition-all duration-1500 ease-linear;
+  @apply inset-0 absolute -z-1 bg-conic from-pink-200 to-pink-400 to-50% transition-all duration-1500 ease-linear;
   content: ' ';
 }
 
-/* Animation keyframes rotate the gradient classes of .station.active .cover:before */
-@keyframes rotate-gradient {
-  from {
-    background-position: 0% 50%;
-  }
-  to {
-    background-position: 100% 50%;
-  }
-}
 
 
 
