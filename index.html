@@ -134,12 +134,12 @@
             <div class="track-meta col-span-2 w-full flex flex-col gap-0 justify-between">
                 <div class="info">
                     <h2 class="track flex flex-col gap-1 text-xl font-semibold">
-                        <span class="artist-name uppercase text-base text-emerald-300 line-clamp-1">Artist Name</span>
+                        <span class="artist-name uppercase text-base text-emerald-300 line-clamp-1 leading-none">Artist Name</span>
                         <span class="track-title funnel-display text-2xl line-clamp-2 leading-none">Track Title</span>
                     </h2>
-                    <p class="album-title text-emerald-300 opacity-50 line-clamp-1">Album Title</p>
+                    <p class="album-title text-emerald-300 opacity-50 line-clamp-1 leading-none">Album Title</p>
                 </div>
-                <div class="time flex flex-row justify-between">
+                <div class="time flex flex-row justify-between leading-none">
                     <div class="time-elapsed text-sm">0:00</div>
                     <div class="time-total text-sm">0:00</div>
                 </div>
@@ -351,7 +351,7 @@
 
 <!-- Global Playback Scrubber -->
     <div class="fixed bottom-0 top-0 left-0 w-full pointer-events-none z-10">
-      <div class="progress h-full bg-emerald-800/70 transition-all duration-200 border-r-2 border-emerald-300" style="width: 0%;"></div>
+      <div class="progress h-full bg-emerald-800/70 transition-all duration-200 border-r-1 border-emerald-300 drop-shadow-2xl drop-shadow-emerald-100/50" style="width: 0%;"></div>
     </div>
 
 <!-- Bg art shade -->
