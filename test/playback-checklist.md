@@ -14,10 +14,10 @@
 
 ## Test 2: Manual Skip with Volume Fade
 1. [ ] While a song is playing, click the "Now Playing" area
-2. [ ] **Verify**: Volume fades to 0 before track change
-3. [ ] **Verify**: New track starts and seeks to random position
-4. [ ] **Verify**: Volume fades back in smoothly after seeking
-5. [ ] **Verify**: No jarring audio cuts or brief playback
+2. [ ] Volume fades to 0 before track change
+3. [ ] New track starts and seeks to random position
+4. [ ] Volume fades back in smoothly after seeking
+5. [ ] No jarring audio cuts or brief playback
 
 ## Test 3: Bluetooth Controls
 1. [ ] Connect Bluetooth headphones or speaker
