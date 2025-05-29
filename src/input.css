@@ -67,6 +67,10 @@ body {
   @apply relative ring-6 ring-transparent rounded-lg;
 }
 
+.station.active{
+  @apply mr-1
+}
+
 .station.active .cover{
   @apply ring-emerald-900;
 }
