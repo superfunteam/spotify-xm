@@ -55,7 +55,7 @@ body {
 }
 
 .cover-pad{
-  @apply relative p-2;
+  @apply relative p-4;
 }
 
 .cover{
