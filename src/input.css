@@ -64,7 +64,11 @@ body {
 }
 
 .station .cover{
-  @apply relative ring-6 ring-emerald-900 rounded-lg;
+  @apply relative ring-6 ring-transparent;
+}
+
+.station.active .cover{
+  @apply ring-emerald-900;
 }
 
 /* Active station styling */
