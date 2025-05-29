@@ -64,7 +64,7 @@ body {
 }
 
 .station .cover{
-  @apply relative ring-6 ring-transparent;
+  @apply relative ring-6 ring-transparent rounded-lg;
 }
 
 .station.active .cover{
