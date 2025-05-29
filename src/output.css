@@ -451,6 +451,9 @@
   .bg-center {
     background-position: center;
   }
+  .fill-emerald-300 {
+    fill: var(--color-emerald-300);
+  }
   .p-0 {
     padding: calc(var(--spacing) * 0);
   }
