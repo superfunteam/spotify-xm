@@ -30,7 +30,7 @@ const STATIONS = [
     id: '90s', 
     name: '90s Throwbacks', 
     description: 'Biggest hits of the 90s', 
-    image: 'stations/station-90s.png',
+    image: 'stations/station.png',
     type: 'playlist',
     playlistId: '5nCCpeCobBAoF91TwgQetX' // Your 90s playlist
   },
@@ -38,7 +38,7 @@ const STATIONS = [
     id: '80s', 
     name: 'All Out 80s', 
     description: 'The unforgettable 80s', 
-    image: 'stations/station-80s.png',
+    image: 'stations/station.png',
     type: 'playlist',
     playlistId: '08k56nfGw0gD8t3oXz8ugt'
   },
@@ -46,7 +46,7 @@ const STATIONS = [
     id: '70s', 
     name: '70s Gold', 
     description: 'Hits from the 70s', 
-    image: 'stations/station-70s.png',
+    image: 'stations/station.png',
     type: 'playlist',
     playlistId: '6Y5RFouEwOtDevkKXVST5W'
   },
@@ -54,7 +54,7 @@ const STATIONS = [
     id: '2k', 
     name: 'Y2K Hits', 
     description: 'Pop from the 2000s', 
-    image: 'placeholder.jpg',
+    image: 'stations/station.png',
     type: 'playlist',
     playlistId: null // To be added when playlist is created
   },
@@ -62,7 +62,7 @@ const STATIONS = [
     id: 'oldies', 
     name: 'Golden Oldies', 
     description: 'Classics from the 50s & 60s', 
-    image: 'stations/station-oldies.png',
+    image: 'stations/station.png',
     type: 'playlist',
     playlistId: null // To be added when playlist is created
   },
@@ -70,7 +70,7 @@ const STATIONS = [
     id: 'new', 
     name: 'Fresh Finds', 
     description: 'Latest music releases', 
-    image: 'placeholder.jpg',
+    image: 'stations/station.png',
     type: 'playlist',
     playlistId: null // To be added when playlist is created
   },
@@ -78,7 +78,7 @@ const STATIONS = [
     id: 'party', 
     name: 'Party Bangers', 
     description: 'High-energy anthems', 
-    image: 'placeholder.jpg',
+    image: 'stations/station.png',
     type: 'playlist',
     playlistId: null // To be added when playlist is created
   },
@@ -86,7 +86,7 @@ const STATIONS = [
     id: 'highschool', 
     name: 'HS Rewind', 
     description: 'Your high school soundtrack', 
-    image: 'placeholder.jpg',
+    image: 'stations/station.png',
     type: 'playlist',
     playlistId: null // To be added when playlist is created
   },
@@ -94,7 +94,7 @@ const STATIONS = [
     id: 'talk', 
     name: 'Talk & Podcasts', 
     description: 'News, comedy & stories', 
-    image: 'placeholder.jpg',
+    image: 'stations/station.png',
     type: 'podcast',
     playlistId: null // Could be a podcast show ID in the future
   },
