@@ -2,6 +2,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuButton = document.querySelector('.menu-button');
     const stationsContainer = document.querySelector('.stations');
     const nowPlayingContainer = document.querySelector('.now-playing-container');
+    const settingsMenu = document.getElementById('settings-menu');
+    const closeSettingsButton = document.getElementById('close-settings-menu');
 
     // Ensure all elements exist
     if (!menuButton) {
@@ -16,22 +18,37 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn('Now playing container (.now-playing-container) not found.');
         return;
     }
+    if (!settingsMenu) {
+        console.warn('Settings menu (#settings-menu) not found.');
+        return;
+    }
+    if (!closeSettingsButton) {
+        console.warn('Close settings button (#close-settings-menu) not found.');
+        return;
+    }
 
     const elementsToShift = [stationsContainer, nowPlayingContainer];
     let isMenuOpen = false;
 
-    menuButton.addEventListener('click', (event) => {
-        event.preventDefault(); // Prevent default anchor link behavior
+    function toggleMenu() {
         isMenuOpen = !isMenuOpen;
 
         elementsToShift.forEach(el => {
-            if (isMenuOpen) {
-                el.classList.remove('translate-x-0');
-                el.classList.add('-translate-x-[80%]');
-            } else {
-                el.classList.remove('-translate-x-[80%]');
-                el.classList.add('translate-x-0');
-            }
+            el.classList.toggle('-translate-x-[80%]', isMenuOpen);
+            el.classList.toggle('translate-x-0', !isMenuOpen);
         });
+
+        settingsMenu.classList.toggle('translate-x-full', !isMenuOpen);
+        settingsMenu.classList.toggle('translate-x-0', isMenuOpen);
+    }
+
+    menuButton.addEventListener('click', (event) => {
+        event.preventDefault(); // Prevent default anchor link behavior
+        toggleMenu();
+    });
+
+    closeSettingsButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        toggleMenu(); // Same function to close the menu
     });
 }); 
