@@ -167,8 +167,20 @@ class SpotifyPlayer {
     // Now playing area click (skip to random position)
     const nowPlayingArea = document.querySelector('.now-playing-container');
     if (nowPlayingArea) {
-      nowPlayingArea.style.cursor = 'pointer';
-      nowPlayingArea.addEventListener('click', () => this.handleNowPlayingClick());
+      // Don't set cursor on the container anymore, it's set in HTML on .now-playing
+      nowPlayingArea.addEventListener('click', (event) => {
+        // Don't trigger if clicking on media controls
+        if (event.target.closest('.media-controls') || 
+            event.target.closest('#previous-btn') || 
+            event.target.closest('#play-pause-btn') || 
+            event.target.closest('#next-btn')) {
+          return;
+        }
+        // Only trigger if clicking on the now-playing area itself
+        if (event.target.closest('.now-playing')) {
+          this.handleNowPlayingClick();
+        }
+      });
     }
 
     // Media control buttons
@@ -177,15 +189,24 @@ class SpotifyPlayer {
     const nextBtn = document.getElementById('next-btn');
 
     if (previousBtn) {
-      previousBtn.addEventListener('click', () => this.handlePreviousClick());
+      previousBtn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        this.handlePreviousClick();
+      });
     }
 
     if (playPauseBtn) {
-      playPauseBtn.addEventListener('click', () => this.handlePlayPauseClick());
+      playPauseBtn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        this.handlePlayPauseClick();
+      });
     }
 
     if (nextBtn) {
-      nextBtn.addEventListener('click', () => this.handleNextClick());
+      nextBtn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        this.handleNextClick();
+      });
     }
 
     // Handle visibility change to pause/resume updates
@@ -724,6 +745,8 @@ class SpotifyPlayer {
     await this.preloadStationCoverImages();
     // Start continuous playback monitoring
     this.startContinuousPlaybackMonitor();
+    // Initialize play/pause button state
+    this.updatePlayPauseButton(true); // Start with play icon showing (paused state)
     await this.playFromCurrentStation();
   }
 
