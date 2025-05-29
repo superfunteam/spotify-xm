@@ -64,8 +64,18 @@ body {
 }
 
 .station.active .cover:before{
-  @apply -inset-2.5 absolute bg-emerald-900/70 -z-1 bg-red-500 rounded-[12.5%] bg-conic from-pink-300 to-pink-800 to-50%;
+  @apply -inset-2.5 absolute bg-emerald-900/70 -z-1 rounded-[12.5%] bg-conic from-pink-200 to-pink-400 to-50% transition-all duration-1500 linear;
   content: ' ';
+}
+
+/* Animation keyframes rotate the gradient classes of .station.active .cover:before */
+@keyframes rotate-gradient {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 100% 50%;
+  }
 }
 
 
