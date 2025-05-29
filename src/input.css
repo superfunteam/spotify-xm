@@ -55,7 +55,7 @@ body {
 }
 
 .cover-pad{
-  @apply relative p-3 overflow-hidden rounded-xl;
+  @apply relative p-3 overflow-hidden rounded-2xl;
 }
 
 .cover{
@@ -68,7 +68,7 @@ body {
 }
 
 .station.active .cover-pad:before{
-  @apply inset-0 absolute -z-1 bg-conic from-pink-200 to-pink-400 to-50% transition-all duration-1500 ease-linear;
+  @apply inset-0 absolute -z-1 bg-conic from-pink-200 to-pink-400 to-50% transition-all duration-1500 ease-linear animate-spin;
   content: ' ';
 }
 
