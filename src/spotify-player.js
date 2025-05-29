@@ -1117,7 +1117,7 @@ class SpotifyPlayer {
       coverElement.style.backgroundImage = `url('${imageUrl}')`;
       if (artShadeElement) {
         artShadeElement.style.backgroundImage = `url('${imageUrl}')`;
-        artShadeElement.style.opacity = '1';
+        artShadeElement.style.opacity = '0.6';
       }
       
       // Handle image loading errors
