@@ -64,7 +64,7 @@ body {
 }
 
 .station.active .cover:before{
-  @apply -inset-6 absolute bg-emerald-900/70 -z-1 bg-red-500;
+  @apply -inset-3 absolute bg-emerald-900/70 -z-1 bg-red-500 rounded-[12.5%];
   content: ' ';
 }
 
