@@ -65,6 +65,7 @@ body {
 
 .station.active .cover:before{
   @apply -inset-8 absolute bg-emerald-900/70;
+  content: ' ';
 }
 
 
