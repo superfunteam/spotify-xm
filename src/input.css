@@ -68,7 +68,7 @@ body {
 }
 
 .station.active .cover-pad:before{
-  @apply inset-0 absolute -z-1 bg-conic from-pink-200 to-pink-400 to-50% transition-all duration-1500 ease-linear animate-spin;
+  @apply -top-10 -left-20 -right-20 -bottom-10 absolute -z-1 bg-conic from-pink-200 to-pink-400 to-50% transition-all duration-3000 ease-linear animate-spin;
   content: ' ';
 }
 

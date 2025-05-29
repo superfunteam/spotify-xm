@@ -1068,7 +1068,10 @@ body {
 }
 .station.active .cover-pad:before {
   position: absolute;
-  inset: calc(var(--spacing) * 0);
+  top: calc(var(--spacing) * -10);
+  right: calc(var(--spacing) * -20);
+  bottom: calc(var(--spacing) * -10);
+  left: calc(var(--spacing) * -20);
   z-index: calc(1 * -1);
   animation: var(--animate-spin);
   --tw-gradient-position: in oklab;
@@ -1081,8 +1084,8 @@ body {
   transition-property: all;
   transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
   transition-duration: var(--tw-duration, var(--default-transition-duration));
-  --tw-duration: 1500ms;
-  transition-duration: 1500ms;
+  --tw-duration: 3000ms;
+  transition-duration: 3000ms;
   --tw-ease: linear;
   transition-timing-function: linear;
   content: ' ';
