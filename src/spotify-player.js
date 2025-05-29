@@ -168,13 +168,24 @@ class SpotifyPlayer {
     const nowPlayingArea = document.querySelector('.now-playing-container');
     if (nowPlayingArea) {
       nowPlayingArea.style.cursor = 'pointer';
-      nowPlayingArea.addEventListener('click', (event) => {
-        // Prevent click if it's on a media control button
-        if (event.target.closest('.media-controls button')) {
-            return;
-        }
-        this.handleNowPlayingClick();
-      });
+      nowPlayingArea.addEventListener('click', () => this.handleNowPlayingClick());
+    }
+
+    // Media control buttons
+    const previousBtn = document.getElementById('previous-btn');
+    const playPauseBtn = document.getElementById('play-pause-btn');
+    const nextBtn = document.getElementById('next-btn');
+
+    if (previousBtn) {
+      previousBtn.addEventListener('click', () => this.handlePreviousClick());
+    }
+
+    if (playPauseBtn) {
+      playPauseBtn.addEventListener('click', () => this.handlePlayPauseClick());
+    }
+
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => this.handleNextClick());
     }
 
     // Handle visibility change to pause/resume updates
@@ -188,21 +199,6 @@ class SpotifyPlayer {
 
     // Initialize the first station (Liked) as active
     this.initializeDefaultStation();
-
-    // Media Controls
-    const prevBtn = document.getElementById('prev-track-btn');
-    const playPauseBtn = document.getElementById('play-pause-btn');
-    const nextBtn = document.getElementById('next-track-btn');
-
-    if (prevBtn) {
-        prevBtn.addEventListener('click', () => this.handlePrevTrack());
-    }
-    if (playPauseBtn) {
-        playPauseBtn.addEventListener('click', () => this.handlePlayPause());
-    }
-    if (nextBtn) {
-        nextBtn.addEventListener('click', () => this.handleNextTrack());
-    }
   }
 
   initializeDefaultStation() {
@@ -539,6 +535,9 @@ class SpotifyPlayer {
         }
       }
     }
+
+    // Update play/pause button state
+    this.updatePlayPauseButton(state.paused);
 
     // Capture current track URI if available
     if (state && state.track_window && state.track_window.current_track) {
@@ -1073,11 +1072,10 @@ class SpotifyPlayer {
   updateNowPlayingUI(state) {
     if (!state || !state.track_window || !state.track_window.current_track) {
       console.log('Cannot update UI - no track information in state');
-      this.updatePlayPauseButton(true); // Default to play icon if no track
       return;
     }
 
-    const { track_window: { current_track }, position, duration, paused } = state;
+    const { track_window: { current_track }, position, duration } = state;
 
     // Store current track URI
     if (current_track.uri) {
@@ -1113,9 +1111,6 @@ class SpotifyPlayer {
 
     // Update MediaSession
     this.updateMediaSession(current_track);
-
-    // Update Play/Pause button icon
-    this.updatePlayPauseButton(paused);
   }
 
   updateTextElement(selector, text) {
@@ -1228,6 +1223,72 @@ class SpotifyPlayer {
     this.playFromCurrentStation().finally(() => {
       nowPlayingArea?.classList.remove('loading');
     });
+  }
+
+  // Media control handlers
+  async handlePreviousClick() {
+    if (!this.player) {
+      console.warn('Player not available');
+      return;
+    }
+
+    try {
+      // Seek to position 0 to restart current track
+      await this.seekToPosition(0);
+      console.log('Restarted current track');
+    } catch (error) {
+      console.error('Error restarting track:', error);
+    }
+  }
+
+  async handlePlayPauseClick() {
+    if (!this.player) {
+      console.warn('Player not available');
+      return;
+    }
+
+    try {
+      const state = await this.player.getCurrentState();
+      if (!state) {
+        console.warn('No playback state available');
+        return;
+      }
+
+      if (state.paused) {
+        await this.player.resume();
+        console.log('Resumed playback');
+      } else {
+        await this.player.pause();
+        console.log('Paused playback');
+      }
+    } catch (error) {
+      console.error('Error toggling playback:', error);
+    }
+  }
+
+  handleNextClick() {
+    if (!this.accessToken || !this.deviceId) {
+      console.warn('Cannot skip: missing access token or device ID');
+      return;
+    }
+
+    // Use same functionality as clicking the now playing area
+    this.handleNowPlayingClick();
+  }
+
+  updatePlayPauseButton(isPaused) {
+    const playIcon = document.getElementById('play-icon');
+    const pauseIcon = document.getElementById('pause-icon');
+    
+    if (playIcon && pauseIcon) {
+      if (isPaused) {
+        playIcon.classList.remove('hidden');
+        pauseIcon.classList.add('hidden');
+      } else {
+        playIcon.classList.add('hidden');
+        pauseIcon.classList.remove('hidden');
+      }
+    }
   }
 
   handleAuthenticationError() {
@@ -1694,41 +1755,6 @@ class SpotifyPlayer {
         console.error('[Monitor] Error checking playback state:', error);
       }
     }, 2000);
-  }
-
-  updatePlayPauseButton(isPaused) {
-    const playIcon = document.getElementById('play-icon');
-    const pauseIcon = document.getElementById('pause-icon');
-    if (playIcon && pauseIcon) {
-        playIcon.classList.toggle('hidden', !isPaused);
-        pauseIcon.classList.toggle('hidden', isPaused);
-    }
-  }
-
-  async handlePrevTrack() {
-    if (!this.player) return;
-    console.log('Previous track button clicked');
-    await this.player.seek(0);
-    this.showNotification('Restarting track...');
-  }
-
-  async handlePlayPause() {
-    if (!this.player) return;
-    console.log('Play/Pause button clicked');
-    await this.player.togglePlay();
-    // Icon update will be handled by player_state_changed -> updateNowPlayingUI
-  }
-
-  async handleNextTrack() {
-    if (!this.player) return;
-    console.log('Next track button clicked');
-    // Add visual feedback
-    const nowPlayingArea = document.querySelector('.now-playing-container');
-    nowPlayingArea?.classList.add('loading');
-    this.showNotification('Skipping to next track...');
-    await this.playFromCurrentStation().finally(() => {
-      nowPlayingArea?.classList.remove('loading');
-    });
   }
 }
 
