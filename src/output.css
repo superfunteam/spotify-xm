@@ -1060,7 +1060,7 @@ body {
 }
 .station.active .cover:before {
   position: absolute;
-  inset: calc(var(--spacing) * -3);
+  inset: calc(var(--spacing) * -2);
   z-index: calc(1 * -1);
   border-radius: 12.5%;
   background-color: color-mix(in srgb, oklch(37.8% 0.077 168.94) 70%, transparent);
