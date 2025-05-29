@@ -1099,6 +1099,7 @@ class SpotifyPlayer {
     }
 
     const { track_window: { current_track }, position, duration } = state;
+    const artShadeElement = document.querySelector('.art-shade');
 
     // Store current track URI
     if (current_track.uri) {
@@ -1114,13 +1115,28 @@ class SpotifyPlayer {
     if (coverElement && current_track.album.images.length > 0) {
       const imageUrl = current_track.album.images[0].url;
       coverElement.style.backgroundImage = `url('${imageUrl}')`;
+      if (artShadeElement) {
+        artShadeElement.style.backgroundImage = `url('${imageUrl}')`;
+        artShadeElement.style.opacity = '1';
+      }
       
       // Handle image loading errors
       const img = new Image();
       img.onerror = () => {
         coverElement.style.backgroundImage = `url('cover.png')`;
+        if (artShadeElement) {
+          artShadeElement.style.backgroundImage = 'none'; // Or a default, or keep last good one
+          artShadeElement.style.opacity = '0';
+        }
       };
       img.src = imageUrl;
+    } else if (coverElement) {
+        // Fallback if no images are available
+        coverElement.style.backgroundImage = `url('cover.png')`;
+        if (artShadeElement) {
+            artShadeElement.style.backgroundImage = 'none';
+            artShadeElement.style.opacity = '0';
+        }
     }
 
     // Update track information

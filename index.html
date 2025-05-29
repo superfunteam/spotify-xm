@@ -120,7 +120,7 @@
         
     </div>
 
-    <div class="now-playing-container w-full relative z-20 mt-2 transition-transform duration-500 ease-in-out translate-x-0 shrink-0">
+    <div class="now-playing-container w-full relative z-20 mt-2 transition-transform duration-500 ease-in-out translate-x-0 shrink-0 z-20">
         <h2 class="funnel-sans text-3xl text-white px-6 pt-4 flex flex-row items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-8 text-emerald-300">
                 <path fill-rule="evenodd" d="M19.952 1.651a.75.75 0 0 1 .298.599V16.303a3 3 0 0 1-2.176 2.884l-1.32.377a2.553 2.553 0 1 1-1.403-4.909l2.311-.66a1.5 1.5 0 0 0 1.088-1.442V6.994l-9 2.572v9.737a3 3 0 0 1-2.176 2.884l-1.32.377a2.553 2.553 0 1 1-1.402-4.909l2.31-.66a1.5 1.5 0 0 0 1.088-1.442V5.25a.75.75 0 0 1 .544-.721l10.5-3a.75.75 0 0 1 .658.122Z" clip-rule="evenodd" />
@@ -351,7 +351,11 @@
 
 <!-- Global Playback Scrubber -->
     <div class="fixed bottom-0 top-0 left-0 w-full pointer-events-none z-10">
-  <div class="progress h-full bg-emerald-800 transition-all duration-200 border-r-2 border-emerald-300" style="width: 0%;"></div>
+      <div class="progress h-full bg-emerald-800 transition-all duration-200 border-r-2 border-emerald-300" style="width: 0%;"></div>
+    </div>
+
+<!-- Bg art shade -->
+<div class="fixed inset-0 z-9 bg-cover bg-center" style="display: none;">
 </div>
 
 <!-- Spotify Auth Overlay -->
