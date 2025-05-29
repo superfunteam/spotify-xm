@@ -64,7 +64,7 @@ body {
 }
 
 .station.active .cover:before{
-  @apply -inset-2.5 absolute bg-emerald-900/70 -z-1 rounded-[12.5%] bg-conic from-pink-200 to-pink-400 to-50% transition-all duration-1500 linear;
+  @apply -inset-2.5 absolute bg-emerald-900/70 -z-1 rounded-[12.5%] bg-conic from-pink-200 to-pink-400 to-50% transition-all duration-1500 ease-linear;
   content: ' ';
 }
 
