@@ -4,6 +4,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Override Tailwind CSS variables here */
+:root {
+  --animate-spin: spin 8s linear infinite;
+}
+
 /* Custom scrollbar styles */
 .no-scrollbar {
   -ms-overflow-style: none;
@@ -54,11 +59,11 @@ body {
   transition: width 0.3s ease-out;
 }
 
-.cover-pad{
+.station .cover-pad{
   @apply relative p-2.5 overflow-hidden rounded-2xl;
 }
 
-.cover{
+.station .cover{
   @apply relative ring-6 ring-emerald-900 rounded-lg;
 }
 
