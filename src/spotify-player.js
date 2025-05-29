@@ -1114,28 +1114,44 @@ class SpotifyPlayer {
     const coverElement = document.querySelector('.now-playing .cover');
     if (coverElement && current_track.album.images.length > 0) {
       const imageUrl = current_track.album.images[0].url;
+      // Update main cover immediately
       coverElement.style.backgroundImage = `url('${imageUrl}')`;
+
+      // Handle .art-shade with the specified transition effect
       if (artShadeElement) {
-        artShadeElement.style.backgroundImage = `url('${imageUrl}')`;
-        artShadeElement.style.opacity = '0.6';
+        const newArtShadeImageStyle = `url("${imageUrl}")`; // Ensure imageUrl is quoted for style comparison
+
+        if (artShadeElement.style.backgroundImage !== newArtShadeImageStyle) {
+          // Image is different, or art-shade is not yet set: apply the fade-swap-fade effect
+          artShadeElement.style.opacity = '0'; // 1. Start fade out
+
+          setTimeout(() => {
+            artShadeElement.style.backgroundImage = newArtShadeImageStyle; // 2. Change image while mostly/fully transparent
+            artShadeElement.style.opacity = '0.6'; // 3. Start fade in to target opacity
+          }, 300); // Delay for fade-out to occur (CSS transition is 500ms)
+        } else if (artShadeElement.style.opacity !== '0.6') {
+          // Image is the same, but art-shade opacity is not 0.6 (e.g., was hidden due to error)
+          // Just fade it in without the dip.
+          artShadeElement.style.opacity = '0.6';
+        }
       }
       
-      // Handle image loading errors
+      // Handle image loading errors for the main cover (and subsequently art-shade)
       const img = new Image();
       img.onerror = () => {
         coverElement.style.backgroundImage = `url('cover.png')`;
         if (artShadeElement) {
-          artShadeElement.style.backgroundImage = 'none'; // Or a default, or keep last good one
-          artShadeElement.style.opacity = '0';
+          artShadeElement.style.backgroundImage = 'none'; 
+          artShadeElement.style.opacity = '0'; // Fade out art-shade
         }
       };
       img.src = imageUrl;
     } else if (coverElement) {
-        // Fallback if no images are available
+        // Fallback if no images are available for the track
         coverElement.style.backgroundImage = `url('cover.png')`;
         if (artShadeElement) {
             artShadeElement.style.backgroundImage = 'none';
-            artShadeElement.style.opacity = '0';
+            artShadeElement.style.opacity = '0'; // Fade out art-shade
         }
     }
 
