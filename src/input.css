@@ -60,11 +60,11 @@ body {
 
 /* Active station styling */
 .station.active .cover {
-  @apply ring-4 ring-pink-300 ring-offset-6 ring-offset-emerald-900;
+  @apply ring-6 ring-emerald-900;
 }
 
 .station.active .cover:before{
-  @apply -inset-8 absolute bg-emerald-900/70;
+  @apply -inset-6 absolute bg-emerald-900/70 -z-1 bg-red-500;
   content: ' ';
 }
 
