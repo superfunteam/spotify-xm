@@ -667,7 +667,7 @@
   --tw-ease: var(--ease-in-out);
   transition-timing-function: var(--ease-in-out);
 }
-.-translate-x-[80%] .time {
+.-translate-x-\[80\%\] .time {
   opacity: 0%;
 }
 body {
