@@ -1057,7 +1057,7 @@ body {
   position: relative;
   overflow: hidden;
   border-radius: var(--radius-2xl);
-  padding: calc(var(--spacing) * 3);
+  padding: calc(var(--spacing) * 2.5);
 }
 .cover {
   position: relative;
@@ -1084,8 +1084,8 @@ body {
   transition-property: all;
   transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
   transition-duration: var(--tw-duration, var(--default-transition-duration));
-  --tw-duration: 3000ms;
-  transition-duration: 3000ms;
+  --tw-duration: 6000ms;
+  transition-duration: 6000ms;
   --tw-ease: linear;
   transition-timing-function: linear;
   content: ' ';
