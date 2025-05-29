@@ -55,11 +55,11 @@ body {
 }
 
 .cover-pad{
-  @apply relative p-4;
+  @apply relative p-3 overflow-hidden;
 }
 
 .cover{
-  @apply relative ring-6 ring-emerald-900;
+  @apply relative ring-6 ring-emerald-900 rounded-lg;
 }
 
 /* Active station styling */
