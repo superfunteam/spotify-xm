@@ -55,7 +55,7 @@ body {
 }
 
 .cover-pad{
-  @apply relative p-3 overflow-hidden;
+  @apply relative p-3 overflow-hidden rounded-xl;
 }
 
 .cover{
