@@ -54,10 +54,20 @@ body {
   transition: width 0.3s ease-out;
 }
 
+.cover{
+  @apply relative;
+}
+
 /* Active station styling */
 .station.active .cover {
   @apply ring-4 ring-pink-300 ring-offset-6 ring-offset-emerald-900;
 }
+
+.station.active .cover:before{
+  @apply -inset-8 absolute bg-emerald-900/70;
+}
+
+
 
 
 /* Loading states */
