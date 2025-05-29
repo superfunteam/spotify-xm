@@ -6,7 +6,7 @@
 
 /* Override Tailwind CSS variables here */
 :root {
-  --animate-spin: spin 8s linear infinite;
+  --animate-spin: spin 6s linear infinite;
 }
 
 /* Custom scrollbar styles */
