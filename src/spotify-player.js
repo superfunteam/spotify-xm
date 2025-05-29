@@ -27,14 +27,6 @@ const STATIONS = [
     type: 'liked' // Special type for liked songs
   },
   { 
-    id: 'oldies', 
-    name: 'Golden Oldies', 
-    description: 'Classics from the 50s & 60s', 
-    image: 'stations/station-oldies.png',
-    type: 'playlist',
-    playlistId: null // To be added when playlist is created
-  },
-  { 
     id: '70s', 
     name: 'Groovy 70s', 
     description: 'Hits from the seventies', 
@@ -63,6 +55,14 @@ const STATIONS = [
     name: 'Y2K Hits', 
     description: 'Pop from the 2000s', 
     image: 'placeholder.jpg',
+    type: 'playlist',
+    playlistId: null // To be added when playlist is created
+  },
+  { 
+    id: 'oldies', 
+    name: 'Golden Oldies', 
+    description: 'Classics from the 50s & 60s', 
+    image: 'stations/station-oldies.png',
     type: 'playlist',
     playlistId: null // To be added when playlist is created
   },
@@ -179,27 +179,40 @@ class SpotifyPlayer {
         this.resumeUpdates();
       }
     });
+
+    // Initialize the first station (Liked) as active
+    this.initializeDefaultStation();
+  }
+
+  initializeDefaultStation() {
+    // Mark the first station (Liked Songs) as active by default
+    const stations = document.querySelectorAll('.station');
+    if (stations.length > 0) {
+      stations[0].classList.add('active');
+      
+      // Scroll the first station into view
+      stations[0].scrollIntoView({ 
+        behavior: CONFIG.STATION_SCROLL_BEHAVIOR, 
+        block: 'nearest', 
+        inline: 'center' 
+      });
+      
+      console.log('Initialized Liked Songs station as active');
+    }
   }
 
   selectStation(index) {
     const stations = document.querySelectorAll('.station');
-    const activeRingClasses = ['ring-4', 'ring-pink-300', 'ring-offset-6', 'ring-offset-emerald-900'];
     
     // Remove active state from all stations
     stations.forEach(station => {
-      const imageDiv = station.children[0];
-      if (imageDiv) {
-        imageDiv.classList.remove(...activeRingClasses);
-      }
+      station.classList.remove('active');
     });
 
     // Add active state to selected station
     const selectedStation = stations[index];
     if (selectedStation) {
-      const imageDiv = selectedStation.children[0];
-      if (imageDiv) {
-        imageDiv.classList.add(...activeRingClasses);
-      }
+      selectedStation.classList.add('active');
       
       // Scroll into view
       selectedStation.scrollIntoView({ 
