@@ -4,6 +4,10 @@
 @tailwind components;
 @tailwind utilities;
 
+@theme {
+  --color-spotify: #00FF19;
+}
+
 /* Override Tailwind CSS variables here */
 :root {
   --animate-spin: spin 6s linear infinite;

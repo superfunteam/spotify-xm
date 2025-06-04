@@ -2,11 +2,7 @@
 module.exports = {
   content: ["./index.html", "./src/**/*.{html,js}"],
   theme: {
-    extend: {
-      colors: {
-        spotify: '#00FF19',
-      },
-    },
+    extend: {},
   },
   plugins: [
     function({ addUtilities }) {

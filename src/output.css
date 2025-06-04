@@ -60,6 +60,7 @@
     --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     --default-font-family: var(--font-sans);
     --default-mono-font-family: var(--font-mono);
+    --color-spotify: #00FF19;
   }
 }
 @layer base {
@@ -626,6 +627,9 @@
   .bg-red-600 {
     background-color: var(--color-red-600);
   }
+  .bg-spotify {
+    background-color: var(--color-spotify);
+  }
   .bg-white {
     background-color: var(--color-white);
   }
@@ -657,6 +661,9 @@
   }
   .bg-center {
     background-position: center;
+  }
+  .fill-emerald-300 {
+    fill: var(--color-emerald-300);
   }
   .stroke-white {
     stroke: var(--color-white);
@@ -774,11 +781,17 @@
       color: color-mix(in oklab, var(--color-emerald-200) 70%, transparent);
     }
   }
+  .text-emerald-300 {
+    color: var(--color-emerald-300);
+  }
   .text-emerald-400 {
     color: var(--color-emerald-400);
   }
   .text-emerald-950 {
     color: var(--color-emerald-950);
+  }
+  .text-spotify {
+    color: var(--color-spotify);
   }
   .text-white {
     color: var(--color-white);
