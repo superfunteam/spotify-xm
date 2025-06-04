@@ -8,6 +8,13 @@
   --color-spotify: #00FF19;
 }
 
+.mask-gradient-top-15 {
+    mask-image: linear-gradient(to bottom, transparent 0%, black 15%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%);
+    mask-size: 100% 100%;
+    mask-repeat: no-repeat;
+}
+
 /* Override Tailwind CSS variables here */
 :root {
   --animate-spin: spin 6s linear infinite;
