@@ -656,6 +656,9 @@
   .bg-cover {
     background-size: cover;
   }
+  .bg-bottom {
+    background-position: bottom;
+  }
   .bg-bottom-right {
     background-position: right bottom;
   }
