@@ -39,7 +39,7 @@
         </div>
     
         <!-- Station Carousel -->
-        <div class="carousel relative mb-1 overflow-x-auto flex w-full no-scrollbar px-6 pt-4 pb-6 gap-1 z-20">
+        <div class="carousel relative mb-1 overflow-x-auto flex w-full no-scrollbar px-6 pt-4 pb-6 gap-1 z-50">
           <!-- Station 1: Liked Songs -->
           <div class="station shrink-0 flex flex-col items-center space-y-0 w-[42%] rounded-lg cursor-pointer">
             <div class="cover-pad w-full mb-2">
@@ -180,7 +180,7 @@
     </div>
 
     <!-- Media Controls - Fixed at the bottom -->
-    <div class="media-controls fixed bottom-0 left-0 right-0 flex items-center justify-center gap-8 py-4 px-6 bg-emerald-950/80 backdrop-blur-sm z-40 border-t border-emerald-700/50">
+    <div class="media-controls fixed bottom-0 left-0 right-0 flex items-center justify-center gap-8 py-4 px-6 bg-emerald-950/80 backdrop-blur-sm z-30 border-t border-emerald-700/50 transform-gpu">
         <!-- Previous Button -->
         <button id="previous-btn" class="p-3 rounded-lg hover:bg-emerald-700/50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-emerald-950">
             <svg viewBox="0 0 134 134" fill="currentColor" xmlns="http://www.w3.org/2000/svg" class="size-10 text-emerald-100">
@@ -207,7 +207,7 @@
     </div>
 
     <!-- Settings Menu Panel -->
-    <div id="settings-menu" class="fixed top-0 right-0 h-full w-[80%] max-w-md z-30 p-6 transform translate-x-full transition-transform duration-500 ease-in-out overflow-y-auto funnel-sans">
+    <div id="settings-menu" class="fixed top-0 right-0 h-full w-[80%] max-w-md z-50 p-6 transform translate-x-full transition-transform duration-500 ease-in-out overflow-y-auto funnel-sans">
         <div class="flex justify-between items-center mb-8">
             <h2 class="text-2xl font-semibold text-emerald-100">Settings</h2>
             <button id="close-settings-menu" class="text-emerald-300 hover:text-emerald-100">
@@ -382,7 +382,7 @@
     </div>
 
 <!-- Global Playback Scrubber -->
-    <div class="fixed bottom-0 top-0 left-0 w-full pointer-events-none z-10">
+    <div class="fixed bottom-0 top-0 left-0 w-full pointer-events-none z-30">
       <div class="progress h-full bg-emerald-800/70 transition-all duration-200 border-r-2 border-emerald-400" style="width: 0%;"></div>
     </div>
 
@@ -391,7 +391,7 @@
 </div>
 
 <!-- Spotify Auth Overlay -->
-    <div id="spotify-auth-overlay" class="fixed inset-0 bg-emerald-950 bg-opacity-95 flex flex-col items-center justify-center z-50" style="display: none;">
+    <div id="spotify-auth-overlay" class="fixed inset-0 bg-emerald-950 bg-opacity-95 flex flex-col items-center justify-center z-100" style="display: none;">
         <button id="connect-spotify-btn" class="funnel-sans bg-green-500 hover:bg-green-400 text-white text-2xl py-4 px-8 rounded-full shadow-lg focus:outline-none focus:ring-4 focus:ring-green-300 focus:ring-opacity-50 transition duration-150 ease-in-out transform hover:scale-105">
             <img src="spotify.svg" alt="Spotify" class="w-24 h-auto">
   </button>
