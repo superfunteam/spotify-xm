@@ -581,8 +581,8 @@
     border-right-style: var(--tw-border-style);
     border-right-width: 2px;
   }
-  .border-emerald-400 {
-    border-color: var(--color-emerald-400);
+  .border-\[\#00FF19\] {
+    border-color: #00FF19;
   }
   .border-emerald-600 {
     border-color: var(--color-emerald-600);
@@ -602,10 +602,10 @@
   .bg-emerald-600 {
     background-color: var(--color-emerald-600);
   }
-  .bg-emerald-800\/70 {
-    background-color: color-mix(in srgb, oklch(43.2% 0.095 166.913) 70%, transparent);
+  .bg-emerald-800\/40 {
+    background-color: color-mix(in srgb, oklch(43.2% 0.095 166.913) 40%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
-      background-color: color-mix(in oklab, var(--color-emerald-800) 70%, transparent);
+      background-color: color-mix(in oklab, var(--color-emerald-800) 40%, transparent);
     }
   }
   .bg-emerald-900 {
