@@ -361,6 +361,9 @@
   .inline-flex {
     display: inline-flex;
   }
+  .aspect-\[9\/12\] {
+    aspect-ratio: 9/12;
+  }
   .aspect-\[9\/14\] {
     aspect-ratio: 9/14;
   }
@@ -411,6 +414,9 @@
   }
   .w-24 {
     width: calc(var(--spacing) * 24);
+  }
+  .w-\[40\%\] {
+    width: 40%;
   }
   .w-\[42\%\] {
     width: 42%;
