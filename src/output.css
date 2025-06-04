@@ -577,9 +577,9 @@
     border-style: var(--tw-border-style);
     border-width: 2px;
   }
-  .border-r-2 {
+  .border-r-3 {
     border-right-style: var(--tw-border-style);
-    border-right-width: 2px;
+    border-right-width: 3px;
   }
   .border-\[\#00FF19\] {
     border-color: #00FF19;
@@ -657,9 +657,6 @@
   }
   .bg-center {
     background-position: center;
-  }
-  .fill-emerald-300 {
-    fill: var(--color-emerald-300);
   }
   .stroke-white {
     stroke: var(--color-white);
@@ -759,6 +756,9 @@
     --tw-font-weight: var(--font-weight-semibold);
     font-weight: var(--font-weight-semibold);
   }
+  .text-\[\#00FF19\] {
+    color: #00FF19;
+  }
   .text-emerald-100 {
     color: var(--color-emerald-100);
   }
@@ -773,9 +773,6 @@
     @supports (color: color-mix(in lab, red, red)) {
       color: color-mix(in oklab, var(--color-emerald-200) 70%, transparent);
     }
-  }
-  .text-emerald-300 {
-    color: var(--color-emerald-300);
   }
   .text-emerald-400 {
     color: var(--color-emerald-400);
