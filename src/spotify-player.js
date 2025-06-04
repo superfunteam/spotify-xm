@@ -15,6 +15,7 @@ const CONFIG = {
   VOLUME_FADE_DURATION: 300, // ms
   VOLUME_FADE_STEPS: 10, // number of steps for volume fade
   DEBUG_PLAYBACK: true, // Enable detailed logging for continuous playback
+  WAKE_LOCK_ENABLED: true, // Enable screen wake lock for mobile
 };
 
 // Station definitions
@@ -125,6 +126,7 @@ class SpotifyPlayer {
     this.lastPlayedTrackUri = null; // Track the last played track to avoid repeats
     this.recentlyPlayedUris = []; // Keep track of recently played tracks
     this.currentTrackUri = null; // Track the current track URI
+    this.wakeLock = null; // Store the wake lock
   }
 
   async init() {
@@ -141,6 +143,11 @@ class SpotifyPlayer {
       
       if (authResult && authResult.accessToken) {
         await this.initializeSpotifyPlayer(authResult.accessToken);
+      }
+
+      // Initialize wake lock if supported and enabled
+      if (CONFIG.WAKE_LOCK_ENABLED) {
+        await this.initializeWakeLock();
       }
     } catch (error) {
       console.error('Initialization error:', error);
@@ -1442,6 +1449,9 @@ class SpotifyPlayer {
     if (this.player) {
       this.player.disconnect();
     }
+
+    // Release wake lock when destroying the player
+    this.releaseWakeLock();
   }
 
   async fetchPlaylistTracks(playlistId, forceRefresh = false) {
@@ -1815,6 +1825,49 @@ class SpotifyPlayer {
         console.error('[Monitor] Error checking playback state:', error);
       }
     }, 2000);
+  }
+
+  async initializeWakeLock() {
+    try {
+      if ('wakeLock' in navigator) {
+        // Request a screen wake lock
+        this.wakeLock = await navigator.wakeLock.request('screen');
+        console.log('Wake Lock is active');
+
+        // Add a visibility change event listener to reacquire the wake lock if the page becomes visible again
+        document.addEventListener('visibilitychange', async () => {
+          if (this.wakeLock !== null && document.visibilityState === 'visible') {
+            this.wakeLock = await navigator.wakeLock.request('screen');
+            console.log('Wake Lock reacquired');
+          }
+        });
+
+        // Add a fullscreenchange event listener to reacquire the wake lock if needed
+        document.addEventListener('fullscreenchange', async () => {
+          if (this.wakeLock !== null) {
+            this.wakeLock = await navigator.wakeLock.request('screen');
+            console.log('Wake Lock reacquired after fullscreen change');
+          }
+        });
+      } else {
+        console.log('Wake Lock API not supported on this device');
+      }
+    } catch (err) {
+      // The wake lock request may fail if the device doesn't support it or due to system settings
+      console.log(`${err.name}, ${err.message}`);
+    }
+  }
+
+  async releaseWakeLock() {
+    if (this.wakeLock) {
+      try {
+        await this.wakeLock.release();
+        this.wakeLock = null;
+        console.log('Wake Lock released');
+      } catch (err) {
+        console.error(`${err.name}, ${err.message}`);
+      }
+    }
   }
 }
 
