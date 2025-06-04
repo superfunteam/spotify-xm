@@ -152,7 +152,7 @@
 
       <!-- Content Area (Track Info) -->
       <div class="relative p-6 pb-0 flex flex-col justify-end h-full">
-        <h2 class="funnel-sans text-3xl text-white px-0 pt-4 flex flex-row items-center gap-2">
+        <h2 class="funnel-sans text-3xl text-white px-0 flex flex-row items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-8 text-spotify">
                 <path fill-rule="evenodd" d="M19.952 1.651a.75.75 0 0 1 .298.599V16.303a3 3 0 0 1-2.176 2.884l-1.32.377a2.553 2.553 0 1 1-1.403-4.909l2.311-.66a1.5 1.5 0 0 0 1.088-1.442V6.994l-9 2.572v9.737a3 3 0 0 1-2.176 2.884l-1.32.377a2.553 2.553 0 1 1-1.402-4.909l2.31-.66a1.5 1.5 0 0 0 1.088-1.442V5.25a.75.75 0 0 1 .544-.721l10.5-3a.75.75 0 0 1 .658.122Z" clip-rule="evenodd" />
               </svg>
@@ -163,12 +163,12 @@
             <!-- Removed grid, using flex for full width -->
             <div class="info flex flex-col gap-1">
                 <h2 class="track flex flex-col gap-1 text-xl font-semibold">
-                    <span class="artist-name uppercase text-base text-emerald-100/80 line-clamp-1 leading-none">Artist Name</span>
-                    <span class="track-title funnel-display text-2xl text-white line-clamp-2 leading-tight">Track Title</span>
+                    <span class="artist-name uppercase text-lg text-emerald-100/80 line-clamp-1 leading-none">Artist Name</span>
+                    <span class="track-title funnel-display text-3xl text-white line-clamp-2 leading-tight">Track Title</span>
             </h2>
                 <p class="album-title text-emerald-200/70 line-clamp-1 leading-none">Album Title</p>
             </div>
-            <div class="time flex flex-row justify-between text-emerald-200/70 text-xs mt-2 absolute -bottom-8 w-full">
+            <div class="time flex flex-row justify-between text-emerald-200/70 text-xs mt-2 absolute -bottom-12 w-full">
                 <div class="time-elapsed">0:00</div>
                 <div class="time-total">0:00</div>
             </div>
@@ -388,7 +388,7 @@
     </div>
 
 <!-- Bg art shade -->
-<div class="art-shade fixed inset-0 z-1 bg-cover bg-center transition-all duration-1000 ease-in-out blur-sm mix-blend-luminosity" style="opacity: 0;">
+<div class="art-shade fixed inset-0 z-1 bg-cover bg-center transition-all duration-1000 ease-in-out blur-sm" style="opacity: 0;">
 </div>
 
 <!-- Spotify Auth Overlay -->
