@@ -146,7 +146,6 @@
 
     <!-- Reworked Now Playing Container -->
     <div class="now-playing-container w-full relative mt-2 transition-transform duration-500 ease-in-out translate-x-0 shrink-0 z-20 flex-grow flex flex-col justify-between pb-[100px]"> 
-      <!-- Added pb-[100px] for fixed controls height -->
       <!-- Album Art Background Layer -->
       <div id="now-playing-album-art-bg" class="absolute inset-0 w-full h-full bg-cover bg-center transition-all duration-500 ease-in-out z-0" style="background-image: url('cover.png');"></div>
 
@@ -154,7 +153,7 @@
       <div class="absolute bottom-0 left-0 right-0 h-2/3 bg-gradient-to-t from-emerald-950 via-emerald-950/70 to-transparent z-10 pointer-events-none"></div>
 
       <!-- Content Area (Track Info) -->
-      <div class="relative z-20 p-6 flex flex-col justify-end h-full bg-spotify">
+      <div class="relative z-40 p-6 flex flex-col justify-end h-full">
         <h2 class="funnel-sans text-3xl text-white px-0 pt-4 flex flex-row items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-8 text-spotify">
                 <path fill-rule="evenodd" d="M19.952 1.651a.75.75 0 0 1 .298.599V16.303a3 3 0 0 1-2.176 2.884l-1.32.377a2.553 2.553 0 1 1-1.403-4.909l2.311-.66a1.5 1.5 0 0 0 1.088-1.442V6.994l-9 2.572v9.737a3 3 0 0 1-2.176 2.884l-1.32.377a2.553 2.553 0 1 1-1.402-4.909l2.31-.66a1.5 1.5 0 0 0 1.088-1.442V5.25a.75.75 0 0 1 .544-.721l10.5-3a.75.75 0 0 1 .658.122Z" clip-rule="evenodd" />
@@ -162,7 +161,7 @@
             <span class="caps">NOW PLAYING</span>
         </h2>
 
-        <div class="track-meta w-full flex flex-col gap-1 mt-auto"> 
+        <div class="track-meta w-full flex flex-col gap-1 mt-auto z-40"> 
             <!-- Removed grid, using flex for full width -->
             <div class="info flex flex-col gap-1">
                 <h2 class="track flex flex-col gap-1 text-xl font-semibold">
