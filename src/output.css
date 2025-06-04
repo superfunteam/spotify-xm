@@ -421,6 +421,9 @@
   .w-24 {
     width: calc(var(--spacing) * 24);
   }
+  .w-\[36\%\] {
+    width: 36%;
+  }
   .w-\[40\%\] {
     width: 40%;
   }
