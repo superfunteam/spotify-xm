@@ -674,6 +674,9 @@
   .fill-emerald-300 {
     fill: var(--color-emerald-300);
   }
+  .fill-spotify {
+    fill: var(--color-spotify);
+  }
   .stroke-white {
     stroke: var(--color-white);
   }
