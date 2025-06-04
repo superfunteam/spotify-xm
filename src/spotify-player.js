@@ -1099,9 +1099,9 @@ class SpotifyPlayer {
     }
 
     const { track_window: { current_track }, position, duration } = state;
-    const artShadeElement = document.querySelector('.art-shade');
+    const artShadeElement = document.querySelector('.art-shade'); // Full screen dimmer
+    const nowPlayingArtBgElement = document.getElementById('now-playing-album-art-bg'); // BG for .now-playing-container
 
-    // Store current track URI
     if (current_track.uri) {
       this.currentTrackUri = current_track.uri;
     }
@@ -1110,48 +1110,53 @@ class SpotifyPlayer {
       console.log(`Updating UI for: ${current_track.name} (${(position/1000).toFixed(1)}/${(duration/1000).toFixed(1)}s)`);
     }
 
-    // Update cover image
-    const coverElement = document.querySelector('.now-playing .cover');
-    if (coverElement && current_track.album.images.length > 0) {
+    if (current_track.album.images.length > 0) {
       const imageUrl = current_track.album.images[0].url;
-      // Update main cover immediately
-      coverElement.style.backgroundImage = `url('${imageUrl}')`;
+      const newImageStyle = `url("${imageUrl}")`; // Ensure imageUrl is quoted
 
-      // Handle .art-shade with the specified transition effect
-      if (artShadeElement) {
-        const newArtShadeImageStyle = `url("${imageUrl}")`; // Ensure imageUrl is quoted for style comparison
-
-        if (artShadeElement.style.backgroundImage !== newArtShadeImageStyle) {
-          // Image is different, or art-shade is not yet set: apply the fade-swap-fade effect
-          artShadeElement.style.opacity = '0'; // 1. Start fade out
-
+      // Update #now-playing-album-art-bg (specific to now-playing container) with transition
+      if (nowPlayingArtBgElement) {
+        if (nowPlayingArtBgElement.style.backgroundImage !== newImageStyle) {
+          nowPlayingArtBgElement.style.opacity = '0';
           setTimeout(() => {
-            artShadeElement.style.backgroundImage = newArtShadeImageStyle; // 2. Change image while mostly/fully transparent
-            artShadeElement.style.opacity = '0.6'; // 3. Start fade in to target opacity
-          }, 300); // Delay for fade-out to occur (CSS transition is 500ms)
-        } else if (artShadeElement.style.opacity !== '0.6') {
-          // Image is the same, but art-shade opacity is not 0.6 (e.g., was hidden due to error)
-          // Just fade it in without the dip.
-          artShadeElement.style.opacity = '0.6';
+            nowPlayingArtBgElement.style.backgroundImage = newImageStyle;
+            nowPlayingArtBgElement.style.opacity = '1'; // Full opacity for this layer
+          }, 300);
+        } else {
+          nowPlayingArtBgElement.style.opacity = '1'; // Ensure it's visible if image is same
         }
       }
+
+      // Update .art-shade (full screen dimmer) - can also have its own transition if desired via CSS
+      if (artShadeElement) {
+        // For simplicity, direct update. The dip-to-zero was for the primary view.
+        // If .art-shade also needs that, it would require similar timeout logic here.
+        artShadeElement.style.backgroundImage = newImageStyle;
+        artShadeElement.style.opacity = '0.6'; // User's previous preference for .art-shade opacity
+      }
       
-      // Handle image loading errors for the main cover (and subsequently art-shade)
+      // Handle image loading errors (affects both backgrounds)
       const img = new Image();
       img.onerror = () => {
-        coverElement.style.backgroundImage = `url('cover.png')`;
+        if (nowPlayingArtBgElement) {
+          nowPlayingArtBgElement.style.backgroundImage = `url('cover.png')`; // Fallback for container BG
+          nowPlayingArtBgElement.style.opacity = '1';
+        }
         if (artShadeElement) {
           artShadeElement.style.backgroundImage = 'none'; 
-          artShadeElement.style.opacity = '0'; // Fade out art-shade
+          artShadeElement.style.opacity = '0';
         }
       };
       img.src = imageUrl;
-    } else if (coverElement) {
+    } else {
         // Fallback if no images are available for the track
-        coverElement.style.backgroundImage = `url('cover.png')`;
+        if (nowPlayingArtBgElement) {
+            nowPlayingArtBgElement.style.backgroundImage = `url('cover.png')`;
+            nowPlayingArtBgElement.style.opacity = '1';
+        }
         if (artShadeElement) {
             artShadeElement.style.backgroundImage = 'none';
-            artShadeElement.style.opacity = '0'; // Fade out art-shade
+            artShadeElement.style.opacity = '0';
         }
     }
 

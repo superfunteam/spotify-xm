@@ -144,58 +144,66 @@
         
     </div>
 
-    <div class="now-playing-container w-full relative z-20 mt-2 transition-transform duration-500 ease-in-out translate-x-0 shrink-0 z-20">
-        <h2 class="funnel-sans text-3xl text-white px-6 pt-4 flex flex-row items-center gap-2">
+    <!-- Reworked Now Playing Container -->
+    <div class="now-playing-container w-full relative mt-2 transition-transform duration-500 ease-in-out translate-x-0 shrink-0 z-20 flex-grow flex flex-col justify-between pb-[100px]"> 
+      <!-- Added pb-[100px] for fixed controls height -->
+      <!-- Album Art Background Layer -->
+      <div id="now-playing-album-art-bg" class="absolute inset-0 w-full h-full bg-cover bg-center transition-all duration-500 ease-in-out z-0" style="background-image: url('cover.png');"></div>
+
+      <!-- Gradient Overlay -->
+      <div class="absolute bottom-0 left-0 right-0 h-2/3 bg-gradient-to-t from-emerald-950 via-emerald-950/70 to-transparent z-10 pointer-events-none"></div>
+
+      <!-- Content Area (Track Info) -->
+      <div class="relative z-20 p-6 flex flex-col justify-end h-full">
+        <h2 class="funnel-sans text-3xl text-white px-0 pt-4 flex flex-row items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-8 text-emerald-300">
                 <path fill-rule="evenodd" d="M19.952 1.651a.75.75 0 0 1 .298.599V16.303a3 3 0 0 1-2.176 2.884l-1.32.377a2.553 2.553 0 1 1-1.403-4.909l2.311-.66a1.5 1.5 0 0 0 1.088-1.442V6.994l-9 2.572v9.737a3 3 0 0 1-2.176 2.884l-1.32.377a2.553 2.553 0 1 1-1.402-4.909l2.31-.66a1.5 1.5 0 0 0 1.088-1.442V5.25a.75.75 0 0 1 .544-.721l10.5-3a.75.75 0 0 1 .658.122Z" clip-rule="evenodd" />
-              </svg>
+            </svg>
             <span class="caps">NOW PLAYING</span>
         </h2>
 
-        <div class="now-playing w-full px-6 py-3 grid grid-cols-3 gap-6 cursor-pointer">
-            <div class="aspect-square cover w-full bg-cover bg-center rounded-lg shadow-lg transition-all duration-300" style="background-image: url('cover.png');">
-        </div>
-            <div class="track-meta col-span-2 w-full flex flex-col gap-0 justify-between">
+        <div class="track-meta w-full flex flex-col gap-1 mt-auto"> 
+            <!-- Removed grid, using flex for full width -->
             <div class="info flex flex-col gap-1">
-                    <h2 class="track flex flex-col gap-1 text-xl font-semibold">
-                        <span class="artist-name uppercase text-base text-emerald-300 line-clamp-1 leading-none">Artist Name</span>
-                        <span class="track-title funnel-display text-xl line-clamp-2 leading-none">Track Title</span>
-                    </h2>
-                    <p class="album-title text-emerald-300 opacity-50 line-clamp-1 leading-none">Album Title</p>
-                </div>
-                <div class="time flex flex-row justify-between leading-none">
-                    <div class="time-elapsed text-sm">0:00</div>
-                    <div class="time-total text-sm">0:00</div>
+                <h2 class="track flex flex-col gap-1 text-xl font-semibold">
+                    <span class="artist-name uppercase text-base text-emerald-100/80 line-clamp-1 leading-none">Artist Name</span>
+                    <span class="track-title funnel-display text-2xl text-white line-clamp-2 leading-tight">Track Title</span>
+                </h2>
+                <p class="album-title text-emerald-200/70 line-clamp-1 leading-none">Album Title</p>
             </div>
+            <div class="time flex flex-row justify-between text-emerald-200/70 text-xs mt-2">
+                <div class="time-elapsed">0:00</div>
+                <div class="time-total">0:00</div>
             </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Media Controls - Fixed at the bottom -->
+    <div class="media-controls fixed bottom-0 left-0 right-0 flex items-center justify-center gap-8 py-4 px-6 bg-emerald-950/80 backdrop-blur-sm z-40 border-t border-emerald-700/50">
+        <!-- Previous Button -->
+        <button id="previous-btn" class="p-3 rounded-lg hover:bg-emerald-700/50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-emerald-950">
+            <svg viewBox="0 0 134 134" fill="currentColor" xmlns="http://www.w3.org/2000/svg" class="size-10 text-emerald-100">
+                <path d="M77.7763 48.3749L62.2603 63.8909L77.7763 79.4069V48.3749ZM78.594 88.0722L56.37 65.8536C55.2867 64.7702 55.2867 63.0098 56.37 61.9265L78.594 39.7025C80.344 37.9525 83.3336 39.1921 83.3336 41.6661V86.1088C83.3336 88.5828 80.344 89.8222 78.594 88.0722ZM44.4434 41.6656C44.4434 40.1292 45.6881 38.8896 47.2246 38.8896C48.7558 38.8896 50.0006 40.1292 50.0006 41.6656V86.1082C50.0006 87.6446 48.7558 88.8894 47.2246 88.8894C45.6882 88.8894 44.4434 87.6446 44.4434 86.1082V41.6656Z" />
+            </svg>
+        </button>
         
-        <!-- Media Controls -->
-        <div class="media-controls flex items-center justify-center gap-8 mt-12 pb-6 cursor-default">
-            <!-- Previous Button -->
-            <button id="previous-btn" class="p-3 rounded-full hover:bg-emerald-700/50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-emerald-950">
-                <svg viewBox="0 0 134 134" fill="currentColor" xmlns="http://www.w3.org/2000/svg" class="size-12 text-emerald-100">
-                    <path d="M77.7763 48.3749L62.2603 63.8909L77.7763 79.4069V48.3749ZM78.594 88.0722L56.37 65.8536C55.2867 64.7702 55.2867 63.0098 56.37 61.9265L78.594 39.7025C80.344 37.9525 83.3336 39.1921 83.3336 41.6661V86.1088C83.3336 88.5828 80.344 89.8222 78.594 88.0722ZM44.4434 41.6656C44.4434 40.1292 45.6881 38.8896 47.2246 38.8896C48.7558 38.8896 50.0006 40.1292 50.0006 41.6656V86.1082C50.0006 87.6446 48.7558 88.8894 47.2246 88.8894C45.6882 88.8894 44.4434 87.6446 44.4434 86.1082V41.6656Z" />
-                </svg>
-            </button>
-            
-            <!-- Play/Pause Button -->
-            <button id="play-pause-btn" class="p-5 rounded-full bg-white hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-4 focus:ring-offset-emerald-950 shadow-lg">
-                <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-10 text-emerald-950">
-                    <path fill-rule="evenodd" d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clip-rule="evenodd" />
-                </svg>
-                <svg id="pause-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-10 text-emerald-950 hidden">
-                    <path fill-rule="evenodd" d="M6.75 5.25a.75.75 0 0 1 .75-.75H9a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H7.5a.75.75 0 0 1-.75-.75V5.25Zm7.5 0A.75.75 0 0 1 15 4.5h1.5a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H15a.75.75 0 0 1-.75-.75V5.25Z" clip-rule="evenodd" />
-                </svg>
-            </button>
-            
-            <!-- Next Button -->
-            <button id="next-btn" class="p-3 rounded-full hover:bg-emerald-700/50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-emerald-950">
-                <svg viewBox="0 0 134 134" fill="currentColor" xmlns="http://www.w3.org/2000/svg" class="size-12 text-emerald-100">
-                    <path d="M49.1882 88.0733C47.4382 89.8233 44.4434 88.5838 44.4434 86.1097V41.6671C44.4434 39.1931 47.4382 37.9535 49.1882 39.7035L71.4068 61.9275C72.4954 63.0108 72.4954 64.7712 71.4068 65.8545L49.1882 88.0733ZM65.5162 63.8907L50.0002 48.3747V79.4053L65.5162 63.8907ZM77.7766 41.6667C77.7766 40.1303 79.0213 38.8907 80.5578 38.8907C82.089 38.8907 83.3338 40.1303 83.3338 41.6667V86.1093C83.3338 87.6457 82.089 88.8905 80.5578 88.8905C79.0214 88.8905 77.7766 87.6458 77.7766 86.1093V41.6667Z" />
-                </svg>
-            </button>
-        </div>
+        <!-- Play/Pause Button -->
+        <button id="play-pause-btn" class="p-4 rounded-xl bg-white hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-4 focus:ring-offset-emerald-950 shadow-lg">
+            <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-10 text-emerald-950">
+                <path fill-rule="evenodd" d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clip-rule="evenodd" />
+            </svg>
+            <svg id="pause-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-10 text-emerald-950 hidden">
+                <path fill-rule="evenodd" d="M6.75 5.25a.75.75 0 0 1 .75-.75H9a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H7.5a.75.75 0 0 1-.75-.75V5.25Zm7.5 0A.75.75 0 0 1 15 4.5h1.5a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H15a.75.75 0 0 1-.75-.75V5.25Z" clip-rule="evenodd" />
+            </svg>
+        </button>
+        
+        <!-- Next Button -->
+        <button id="next-btn" class="p-3 rounded-lg hover:bg-emerald-700/50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-emerald-950">
+            <svg viewBox="0 0 134 134" fill="currentColor" xmlns="http://www.w3.org/2000/svg" class="size-10 text-emerald-100">
+                <path d="M49.1882 88.0733C47.4382 89.8233 44.4434 88.5838 44.4434 86.1097V41.6671C44.4434 39.1931 47.4382 37.9535 49.1882 39.7035L71.4068 61.9275C72.4954 63.0108 72.4954 64.7712 71.4068 65.8545L49.1882 88.0733ZM65.5162 63.8907L50.0002 48.3747V79.4053L65.5162 63.8907ZM77.7766 41.6667C77.7766 40.1303 79.0213 38.8907 80.5578 38.8907C82.089 38.8907 83.3338 40.1303 83.3338 41.6667V86.1093C83.3338 87.6457 82.089 88.8905 80.5578 88.8905C79.0214 88.8905 77.7766 87.6458 77.7766 86.1093V41.6667Z" />
+            </svg>
+        </button>
     </div>
 
     <!-- Settings Menu Panel -->
