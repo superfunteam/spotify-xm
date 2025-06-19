@@ -1890,4 +1890,18 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('beforeunload', () => {
     player.destroy();
   });
+
+  // Function to adjust body height to viewport
+  function adjustBodyHeightToViewport() {
+    const viewportHeight = window.innerHeight;
+    document.body.style.height = viewportHeight + 'px';
+    console.log(`Adjusted body height to: ${viewportHeight}px`);
+  }
+
+  // Initial adjustment
+  adjustBodyHeightToViewport();
+
+  // Adjust on resize and orientation change
+  window.addEventListener('resize', adjustBodyHeightToViewport);
+  window.addEventListener('orientationchange', adjustBodyHeightToViewport);
 }); 
